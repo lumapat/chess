@@ -15,17 +15,40 @@ import Control.Applicative
 import qualified Data.Vector as DV
 import Data.Ix (range)
 
-data Piece = Open
-           | King
-           | Queen
-           | Rook
-           | Bishop
-           | Knight
-           | Pawn
-           deriving (Eq, Show)
+data ChessColor = Black
+                | White
+                deriving (Eq, Show)
 
-instance Enum Piece where
-    fromEnum Open = 0
+data Piece = Piece ChessColor PieceClass
+           | Open
+           deriving (Eq)
+
+data PieceClass = King
+                | Queen
+                | Rook
+                | Bishop
+                | Knight
+                | Pawn
+                deriving (Eq, Show)
+
+instance Show Piece where
+    show Open = " "
+
+    show (Piece Black King) = "♚"
+    show (Piece Black Queen) = "♛"
+    show (Piece Black Rook) = "♜"
+    show (Piece Black Bishop) = "♝"
+    show (Piece Black Knight) = "♞"
+    show (Piece Black Pawn) = "♟"
+
+    show (Piece White King) = "♔"
+    show (Piece White Queen) = "♕"
+    show (Piece White Rook) = "♖"
+    show (Piece White Bishop) = "♗"
+    show (Piece White Knight) = "♘"
+    show (Piece White Pawn) = "♙"
+
+instance Enum PieceClass where
     fromEnum King = 1
     fromEnum Queen = 2
     fromEnum Rook = 3
@@ -33,7 +56,6 @@ instance Enum Piece where
     fromEnum Knight = 5
     fromEnum Pawn = 6
 
-    toEnum 0 = Open
     toEnum 1 = King
     toEnum 2 = Queen
     toEnum 3 = Rook
@@ -42,17 +64,34 @@ instance Enum Piece where
     toEnum 6 = Pawn
 
 data Board = Board
-    { boardSquares :: DV.Vector (DV.Vector Piece)
-    , boardMaxFile :: File
-    , boardMaxRank :: Rank
+    { boardMaxRanks :: Int
+    , boardMaxFiles :: Int
+    , boardSquares :: DV.Vector (DV.Vector Piece)
     } deriving (Eq, Show)
 
+maxRanks = 8
+maxFiles = 8
+
 cleanBoard :: Board
-cleanBoard = Board
-    { boardSquares = DV.replicate 8 (DV.replicate 8 Open)
-    , boardMaxFile = File 7
-    , boardMaxRank = Rank 7
-    }
+cleanBoard = Board maxRanks maxFiles $ DV.fromList
+    [ royalRow Black
+    , peasantRow Black
+    , blankRow
+    , blankRow
+    , blankRow
+    , blankRow
+    , peasantRow White
+    , royalRow White
+    ]
+
+blankRow :: DV.Vector Piece
+blankRow = DV.replicate maxFiles Open
+
+peasantRow :: ChessColor -> DV.Vector Piece
+peasantRow color = DV.replicate maxFiles (Piece color Pawn)
+
+royalRow :: ChessColor -> DV.Vector Piece
+royalRow color = DV.fromList $ (Piece color) <$> [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
 
 newtype File = File Int deriving (Enum, Eq, Num, Ord, Show)
 newtype Rank = Rank Int deriving (Enum, Eq, Num, Ord, Show)
@@ -91,11 +130,11 @@ riderSquares r f s = (uncurry Square) <$> (drop 1 $ zip ranks files)
           files = [startingFile, startingFile + fileInc..]
 
 inBounds :: Board -> Square -> Bool
-inBounds b s | (boardFile s) < 0                = False
-             | (boardFile s) > (boardMaxFile b) = False
-             | (boardRank s) < 0                = False
-             | (boardRank s) > (boardMaxRank b) = False
-             | otherwise                        = True
+inBounds b s | (fromEnum $ boardFile s) < 0                 = False
+             | (fromEnum $ boardFile s) > (boardMaxFiles b) = False
+             | (fromEnum $ boardRank s) < 0                 = False
+             | (fromEnum $ boardRank s) > (boardMaxRanks b) = False
+             | otherwise                                    = True
 
 open :: Board -> Square -> Bool
 open b s = ((boardSquares b) DV.! col DV.! row) == Open
@@ -107,11 +146,10 @@ pieceAt b s | not $ inBounds b s = Nothing
 
 
 moves :: Board -> Square -> Maybe [Square]
-moves b s = do piece <- pieceAt b s
-               return $ pieceMove piece b s
+moves b s = do (Piece _ pieceClass) <- pieceAt b s
+               return $ pieceMove pieceClass b s
 
-pieceMove :: Piece -> Board -> Square -> [Square]
-pieceMove Open _ _ = []
+pieceMove :: PieceClass -> Board -> Square -> [Square]
 pieceMove King b s = ((uncurry Square) . ff) <$> (filter (/= (0,0)) $ range ((-1, -1), (1,1)))
     where f = (+ (boardRank s)) . Rank
           f' = (+ (boardFile s)) . File
