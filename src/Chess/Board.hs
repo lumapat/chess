@@ -2,14 +2,15 @@
 
 module Chess.Board
     ( Board (..)
+    , ChessColor (..)
     , ChessCoord (..)
     , File (..)
     , Piece (..)
     , Rank (..)
     , Square (..)
-    , cleanBoard
     , moves
     , pieceMove
+    , startingBoard
     ) where
 
 import Control.Applicative
@@ -92,8 +93,8 @@ data Square = Square
     , squarePiece :: Piece
     } deriving (Eq, Show)
 
-cleanBoard :: Board
-cleanBoard = Board maxRanks maxFiles $ DV.fromList $ alternatingColorsOf
+startingBoard :: Board
+startingBoard = Board maxRanks maxFiles $ DV.fromList $ alternatingColorsOf
     [ royalRow Black
     , peasantRow Black
     , blankRow
