@@ -44,58 +44,56 @@ instance Enum Piece where
 data Board = Board
     { boardSquares :: DV.Vector (DV.Vector Piece)
     , boardMaxFile :: File
-    , boardMinFile :: File
     , boardMaxRank :: Rank
-    , boardMinRank :: Rank
     } deriving (Eq, Show)
 
 cleanBoard :: Board
 cleanBoard = Board
     { boardSquares = DV.replicate 8 (DV.replicate 8 Open)
     , boardMaxFile = File 7
-    , boardMinFile = File 0
     , boardMaxRank = Rank 7
-    , boardMinRank = Rank 0
     }
 
 newtype File = File Int deriving (Enum, Eq, Num, Ord, Show)
 newtype Rank = Rank Int deriving (Enum, Eq, Num, Ord, Show)
 
 data Square = Square
-    { boardFile :: File
-    , boardRank :: Rank
+    { boardRank :: Rank
+    , boardFile :: File
     } deriving (Eq, Ord, Show)
 
 square :: Int -> Int -> Square
-square file rank = Square (File file) (Rank rank)
+square rank file = Square (Rank rank) (File file)
 
 squareIndices :: Square -> (Int, Int)
-squareIndices (Square (File col) (Rank row)) = (col, row)
+squareIndices (Square (Rank row) (File col)) = (row, col)
 
 -- TODO: Use lens or another means to update??
 -- Switch a square's file and rank
-squareUp :: Square -> (File -> File) -> (Rank -> Rank) -> Square
-squareUp s fileT rankT = Square (fileT $ boardFile s) (rankT $ boardRank s)
+squareUp :: Square -> (Rank -> Rank) -> (File -> File) -> Square
+squareUp s rankT fileT = Square (rankT $ boardRank s) (fileT $ boardFile s)
 
 rankUp :: Square -> (Rank -> Rank) -> Square
-rankUp sq rankT = squareUp sq id rankT
+rankUp sq rankT = squareUp sq rankT id
 
 fileUp :: Square -> (File -> File) -> Square
-fileUp sq fileT = squareUp sq fileT id
+fileUp sq fileT = squareUp sq id fileT
 
 -- TODO: Docs
 -- Rider squares are squares going in multiple directions
-riderSquares :: (File, Rank) -> Square -> [Square]
-riderSquares (fileInc, rankInc) s = (uncurry Square) <$> (drop 1 $ zip files ranks)
-    where startingFile = boardFile s
+riderSquares :: Int -> Int -> Square -> [Square]
+riderSquares r f s = (uncurry Square) <$> (drop 1 $ zip ranks files)
+    where rankInc = Rank r
+          fileInc = File f
           startingRank = boardRank s
-          files = [startingFile, startingFile + fileInc..]
+          startingFile = boardFile s
           ranks = [startingRank, startingRank + rankInc..]
+          files = [startingFile, startingFile + fileInc..]
 
 inBounds :: Board -> Square -> Bool
-inBounds b s | (boardFile s) < (boardMinFile b) = False
+inBounds b s | (boardFile s) < 0                = False
              | (boardFile s) > (boardMaxFile b) = False
-             | (boardRank s) < (boardMinRank b) = False
+             | (boardRank s) < 0                = False
              | (boardRank s) > (boardMaxRank b) = False
              | otherwise                        = True
 
@@ -103,13 +101,13 @@ open :: Board -> Square -> Bool
 open b s = ((boardSquares b) DV.! col DV.! row) == Open
     where (col, row) = squareIndices s
 
-pieceAt :: Square -> Board -> Maybe Piece
-pieceAt s b | not $ inBounds b s = Nothing
-            | otherwise          = Just $ (boardSquares b) DV.! (fromEnum $ boardFile s) DV.! (fromEnum $ boardRank s)
+pieceAt :: Board -> Square -> Maybe Piece
+pieceAt b s | not $ inBounds b s = Nothing
+            | otherwise          = Just $ (boardSquares b) DV.! (fromEnum $ boardRank s) DV.! (fromEnum $ boardFile s)
 
 
 moves :: Board -> Square -> Maybe [Square]
-moves b s = do piece <- pieceAt s b
+moves b s = do piece <- pieceAt b s
                return $ pieceMove piece b s
 
 pieceMove :: Piece -> Board -> Square -> [Square]
@@ -117,27 +115,27 @@ pieceMove Open _ _ = []
 pieceMove King b s = ((uncurry Square) . ff) <$> (filter (/= (0,0)) $ range ((-1, -1), (1,1)))
     where f = (+ (boardRank s)) . Rank
           f' = (+ (boardFile s)) . File
-          ff (file, rank) = (f' file, f rank)
+          ff (rank, file) = (f rank, f' file)
 
 pieceMove Rook b s = up ++ down ++ left ++ right
-    where takeValidBy inc = takeWhile (inBounds b) $ riderSquares inc s
-          up = takeValidBy (File 0, Rank 1)
-          down = takeValidBy (File 0, Rank (-1))
-          right = takeValidBy (File 1, Rank 0)
-          left = takeValidBy (File (-1), Rank 0)
+    where takeValidRiderSquares ri fi sq = (takeWhile (inBounds b)) $ riderSquares ri fi sq
+          up    = takeValidRiderSquares 1 0 s
+          down  = takeValidRiderSquares (-1) 0 s
+          right = takeValidRiderSquares 0 1 s
+          left  = takeValidRiderSquares 0 (-1) s
 
 pieceMove Bishop b s = ne ++ nw ++ se++ sw
-    where takeValidBy inc = takeWhile (inBounds b) $ riderSquares inc s
-          ne = takeValidBy (File 1, Rank 1)
-          nw = takeValidBy (File (-1), Rank 1)
-          se = takeValidBy (File 1, Rank (-1))
-          sw = takeValidBy (File (-1), Rank (-1))
+    where takeValidRiderSquares ri fi sq = (takeWhile (inBounds b)) $ riderSquares ri fi sq
+          ne = takeValidRiderSquares 1 1 s
+          nw = takeValidRiderSquares 1 (-1) s
+          se = takeValidRiderSquares (-1) 1 s
+          sw = takeValidRiderSquares (-1) (-1) s
 
 pieceMove Queen b s = (pieceMove Rook b s) ++ (pieceMove Bishop b s)
 
 pieceMove Knight b s = newSq <$> mvmts
     where f op (a,b) (c,d) = (op a c, op b d)
           mvmts = (f (*)) <$> [(-1,-1), (-1,1), (1,-1), (1,1)] <*> [(1,2), (2,1)]
-          newSq (a, b) = squareUp s (+ File a) (+ Rank b)
+          newSq (a, b) = squareUp s (+ Rank b) (+ File a)
 
 pieceMove Pawn b s = [rankUp s ((1 :: Rank) +)]
