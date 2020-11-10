@@ -2,13 +2,13 @@ module Chess.Game
     (
     ) where
 
-import Chess.Board
+import Chess.Rules
+import Chess.Types.Board
     ( Board (..)
-    , ChessColor
     , ChessCoord
-    , Piece
     , startingBoard
     )
+import Chess.Types.Unit
 
 data GameState = Play ChessColor
                | Check ChessColor
