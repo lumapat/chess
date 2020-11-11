@@ -1,11 +1,9 @@
 module Chess.Types.Board
-    ( Board
+    ( Board (boardMaxCols, boardMaxRows)
     , (!?)
     , boardCol
     , boardRow
     , inBounds
-    , maxCols
-    , maxRows
     , newBoard
     ) where
 
@@ -30,9 +28,6 @@ newBoard maxRows maxCols items defaultVal = Board maxRows maxCols matrix
           f xs = DV.fromList $ take maxCols $ xs ++ fillerCols
           fillerCols = repeat defaultVal
           fillerRows = repeat $ DV.replicate maxCols defaultVal
-
-maxRows = boardMaxRows
-maxCols = boardMaxCols
 
 (!?) :: Board a -> (Int, Int) -> Maybe a
 (!?) b (r, c) = do

@@ -53,6 +53,10 @@ startingBoard = ChessBoard $ newBoard maxRanks maxFiles boardSetup Open
                        , royalRow White
                        ]
 
+pawnStartRank :: ChessColor -> Rank
+pawnStartRank White = 1
+pawnStartRank Black = 6
+
 validChessCoord :: ChessBoard -> ChessCoord -> Bool
 validChessCoord b c = inBounds (chessBoard b) (toIntCoords c)
 
@@ -71,17 +75,6 @@ peasantRow color = replicate maxFiles (Piece color Pawn)
 royalRow :: ChessColor -> [Piece]
 royalRow color = (Piece color) <$> [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
 
--- TODO: Use lens or another means to update??
--- Switch a square's file and rank
-squareUp :: ChessCoord -> (Rank -> Rank) -> (File -> File) -> ChessCoord
-squareUp c rankT fileT = ChessCoord (rankT $ boardRank c) (fileT $ boardFile c)
-
-rankUp :: ChessCoord -> (Rank -> Rank) -> ChessCoord
-rankUp c rankT = squareUp c rankT id
-
-fileUp :: ChessCoord -> (File -> File) -> ChessCoord
-fileUp c fileT = squareUp c id fileT
-
 -- TODO: Docs
 -- Rider squares are squares going in multiple directions
 riderSquares :: Int -> Int -> ChessCoord -> [ChessCoord]
@@ -94,38 +87,41 @@ riderSquares r f s = drop 1 $ zipWith ChessCoord ranks files
           files = [startingFile, startingFile + fileInc..]
 
 moves :: ChessBoard -> ChessCoord -> Maybe [ChessCoord]
-moves b c = do (Piece _ pieceClass) <- pieceAt b c
-               return $ pieceMove pieceClass b c
+moves b c = do p  <- pieceAt b c
+               return $ pieceMove p b c
 
-pieceMove :: PieceClass -> ChessBoard -> ChessCoord -> [ChessCoord]
-pieceMove King b s = filter (validChessCoord b) $ (toChessCoords . translate) <$> mvmts
+pieceMove :: Piece -> ChessBoard -> ChessCoord -> [ChessCoord]
+pieceMove (Piece _ King) b s = filter (validChessCoord b) $ (toChessCoords . translate) <$> mvmts
     where mvmts = filter (/= (0,0)) $ range ((-1, -1), (1,1))
           translate (a,b) = (startR + a, startF + b)
           (startR, startF) = toIntCoords s
 
-pieceMove Rook b s = up ++ down ++ left ++ right
+pieceMove (Piece _ Rook) b s = up ++ down ++ left ++ right
     where takeValidRiderSquares ri fi sq = takeWhile (validChessCoord b) $ riderSquares ri fi sq
           up    = takeValidRiderSquares 1 0 s
           down  = takeValidRiderSquares (-1) 0 s
           right = takeValidRiderSquares 0 1 s
           left  = takeValidRiderSquares 0 (-1) s
 
-pieceMove Bishop b s = ne ++ nw ++ se ++ sw
+pieceMove (Piece _ Bishop) b s = ne ++ nw ++ se ++ sw
     where takeValidRiderSquares ri fi sq = takeWhile (validChessCoord b) $ riderSquares ri fi sq
           ne = takeValidRiderSquares 1 1 s
           nw = takeValidRiderSquares 1 (-1) s
           se = takeValidRiderSquares (-1) 1 s
           sw = takeValidRiderSquares (-1) (-1) s
 
-pieceMove Queen b s = (pieceMove Rook b s) ++ (pieceMove Bishop b s)
+pieceMove (Piece color Queen) b c = rookMoves ++ bishopMoves
+    where rookMoves = pieceMove (Piece color Rook) b c
+          bishopMoves = pieceMove (Piece color Bishop) b c
 
-pieceMove Knight b s = toChessCoords <$> knightSquares
+pieceMove (Piece _ Knight) b s = toChessCoords <$> knightSquares
     where f op (a,b) (c,d) = (op a c, op b d)
           mvmts = (f (*)) <$> [(-1,-1), (-1,1), (1,-1), (1,1)] <*> [(1,2), (2,1)]
           fromStart (ChessCoord (Rank startR) (File startF)) (a,b) = (startR + a, startF + b)
           knightSquares = filter (inBounds $ chessBoard b) $ (fromStart s) <$> mvmts
 
-pieceMove Pawn b s = [rankUp s ((1 :: Rank) +)]
+pieceMove (Piece color Pawn) b c = [toChessCoords (rank+1, file)]
+    where (rank, file) = toIntCoords c
 
 pieceAt :: ChessBoard -> ChessCoord -> Maybe Piece
 pieceAt b (ChessCoord r f) = (chessBoard b) !? (fromEnum r, fromEnum f)
