@@ -3,8 +3,7 @@ module Chess.Game
     ) where
 
 import Chess.Rules
-import Chess.Types.Board
-    ( Board (..)
+    ( ChessBoard (..)
     , ChessCoord
     , startingBoard
     )
@@ -22,7 +21,7 @@ data Action = Move ChessCoord ChessCoord
 
 data Game = Game
     { gameState :: GameState
-    , gameBoard :: Board
+    , gameBoard :: ChessBoard
     }
 
 newGame :: Game
