@@ -12,7 +12,7 @@ import Chess.Types.Unit
 import Data.Ix (range)
 
 data ChessBoard = ChessBoard
-    { chessBoard :: Board Piece
+    { chessBoard :: Board ChessPiece
     } deriving (Eq, Show)
 
 maxRanks = 8
@@ -37,7 +37,7 @@ toChessCoords (r, c) = ChessCoord
 
 data Square = Square
     { squareColor :: ChessColor
-    , squarePiece :: Piece
+    , squareChessPiece :: ChessPiece
     } deriving (Eq, Show)
 
 startingBoard :: ChessBoard
@@ -60,20 +60,20 @@ pawnStartRank Black = 6
 validChessCoord :: ChessBoard -> ChessCoord -> Bool
 validChessCoord b c = inBounds (chessBoard b) (toIntCoords c)
 
-alternateColoredRow :: ChessColor -> [PieceClass] -> [Piece]
-alternateColoredRow color pieces = Piece <$> colors <*> pieces
+alternateColoredRow :: ChessColor -> [ChessPieceClass] -> [ChessPiece]
+alternateColoredRow color pieces = ChessPiece <$> colors <*> pieces
     where colors = alternatingColors <$> [1..]
           alternatingColors ix | even ix   = color
                                | otherwise = opposingChessColor color
 
-blankRow :: [Piece]
+blankRow :: [ChessPiece]
 blankRow = replicate maxFiles Open
 
-peasantRow :: ChessColor -> [Piece]
-peasantRow color = replicate maxFiles (Piece color Pawn)
+peasantRow :: ChessColor -> [ChessPiece]
+peasantRow color = replicate maxFiles (ChessPiece color Pawn)
 
-royalRow :: ChessColor -> [Piece]
-royalRow color = (Piece color) <$> [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+royalRow :: ChessColor -> [ChessPiece]
+royalRow color = (ChessPiece color) <$> [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
 
 -- TODO: Docs
 -- Rider squares are squares going in multiple directions
@@ -90,40 +90,40 @@ moves :: ChessBoard -> ChessCoord -> Maybe [ChessCoord]
 moves b c = do p  <- pieceAt b c
                return $ pieceMove p b c
 
-pieceMove :: Piece -> ChessBoard -> ChessCoord -> [ChessCoord]
-pieceMove (Piece _ King) b s = filter (validChessCoord b) $ (toChessCoords . translate) <$> mvmts
+pieceMove :: ChessPiece -> ChessBoard -> ChessCoord -> [ChessCoord]
+pieceMove (ChessPiece _ King) b s = filter (validChessCoord b) $ (toChessCoords . translate) <$> mvmts
     where mvmts = filter (/= (0,0)) $ range ((-1, -1), (1,1))
           translate (a,b) = (startR + a, startF + b)
           (startR, startF) = toIntCoords s
 
-pieceMove (Piece _ Rook) b s = up ++ down ++ left ++ right
+pieceMove (ChessPiece _ Rook) b s = up ++ down ++ left ++ right
     where takeValidRiderSquares ri fi sq = takeWhile (validChessCoord b) $ riderSquares ri fi sq
           up    = takeValidRiderSquares 1 0 s
           down  = takeValidRiderSquares (-1) 0 s
           right = takeValidRiderSquares 0 1 s
           left  = takeValidRiderSquares 0 (-1) s
 
-pieceMove (Piece _ Bishop) b s = ne ++ nw ++ se ++ sw
+pieceMove (ChessPiece _ Bishop) b s = ne ++ nw ++ se ++ sw
     where takeValidRiderSquares ri fi sq = takeWhile (validChessCoord b) $ riderSquares ri fi sq
           ne = takeValidRiderSquares 1 1 s
           nw = takeValidRiderSquares 1 (-1) s
           se = takeValidRiderSquares (-1) 1 s
           sw = takeValidRiderSquares (-1) (-1) s
 
-pieceMove (Piece color Queen) b c = rookMoves ++ bishopMoves
-    where rookMoves = pieceMove (Piece color Rook) b c
-          bishopMoves = pieceMove (Piece color Bishop) b c
+pieceMove (ChessPiece color Queen) b c = rookMoves ++ bishopMoves
+    where rookMoves = pieceMove (ChessPiece color Rook) b c
+          bishopMoves = pieceMove (ChessPiece color Bishop) b c
 
-pieceMove (Piece _ Knight) b s = toChessCoords <$> knightSquares
+pieceMove (ChessPiece _ Knight) b s = toChessCoords <$> knightSquares
     where f op (a,b) (c,d) = (op a c, op b d)
           mvmts = (f (*)) <$> [(-1,-1), (-1,1), (1,-1), (1,1)] <*> [(1,2), (2,1)]
           fromStart (ChessCoord (Rank startR) (File startF)) (a,b) = (startR + a, startF + b)
           knightSquares = filter (inBounds $ chessBoard b) $ (fromStart s) <$> mvmts
 
-pieceMove (Piece color Pawn) b c = [toChessCoords (rank+1, file)]
+pieceMove (ChessPiece color Pawn) b c = [toChessCoords (rank+1, file)]
     where (rank, file) = toIntCoords c
 
-pieceAt :: ChessBoard -> ChessCoord -> Maybe Piece
+pieceAt :: ChessBoard -> ChessCoord -> Maybe ChessPiece
 pieceAt b (ChessCoord r f) = (chessBoard b) !? (fromEnum r, fromEnum f)
 
 open :: ChessBoard -> ChessCoord -> Bool

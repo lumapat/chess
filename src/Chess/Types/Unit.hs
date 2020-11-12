@@ -1,7 +1,7 @@
 module Chess.Types.Unit
     ( ChessColor (..)
-    , Piece (..)
-    , PieceClass(..)
+    , ChessPiece (..)
+    , ChessPieceClass(..)
     , opposingChessColor
     ) where
 
@@ -13,38 +13,36 @@ opposingChessColor :: ChessColor -> ChessColor
 opposingChessColor Black = White
 opposingChessColor White = Black
 
--- TODO: Rename to ChessPieceClass
-data PieceClass = King
-                | Queen
-                | Rook
-                | Bishop
-                | Knight
-                | Pawn
-                deriving (Eq, Show)
+data ChessPieceClass = King
+                     | Queen
+                     | Rook
+                     | Bishop
+                     | Knight
+                     | Pawn
+                     deriving (Eq, Show)
 
--- TODO: Rename to ChessPiece
-data Piece = Piece ChessColor PieceClass
-           | Open
-           deriving (Eq)
+data ChessPiece = ChessPiece ChessColor ChessPieceClass
+                | Open
+                deriving (Eq)
 
-instance Show Piece where
+instance Show ChessPiece where
     show Open = " "
 
-    show (Piece Black King) = "♚"
-    show (Piece Black Queen) = "♛"
-    show (Piece Black Rook) = "♜"
-    show (Piece Black Bishop) = "♝"
-    show (Piece Black Knight) = "♞"
-    show (Piece Black Pawn) = "♟"
+    show (ChessPiece Black King) = "♚"
+    show (ChessPiece Black Queen) = "♛"
+    show (ChessPiece Black Rook) = "♜"
+    show (ChessPiece Black Bishop) = "♝"
+    show (ChessPiece Black Knight) = "♞"
+    show (ChessPiece Black Pawn) = "♟"
 
-    show (Piece White King) = "♔"
-    show (Piece White Queen) = "♕"
-    show (Piece White Rook) = "♖"
-    show (Piece White Bishop) = "♗"
-    show (Piece White Knight) = "♘"
-    show (Piece White Pawn) = "♙"
+    show (ChessPiece White King) = "♔"
+    show (ChessPiece White Queen) = "♕"
+    show (ChessPiece White Rook) = "♖"
+    show (ChessPiece White Bishop) = "♗"
+    show (ChessPiece White Knight) = "♘"
+    show (ChessPiece White Pawn) = "♙"
 
-instance Enum PieceClass where
+instance Enum ChessPieceClass where
     fromEnum King = 1
     fromEnum Queen = 2
     fromEnum Rook = 3
