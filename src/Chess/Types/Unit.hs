@@ -56,4 +56,3 @@ instance Enum ChessPieceClass where
     toEnum 4 = Bishop
     toEnum 5 = Knight
     toEnum 6 = Pawn
-

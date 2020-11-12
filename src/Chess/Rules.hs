@@ -35,11 +35,6 @@ toChessCoords (r, c) = ChessCoord
     , boardFile = toEnum c
     }
 
-data Square = Square
-    { squareColor :: ChessColor
-    , squareChessPiece :: ChessPiece
-    } deriving (Eq, Show)
-
 startingBoard :: ChessBoard
 startingBoard = ChessBoard $ newBoard maxRanks maxFiles boardSetup Open
     where alternatingColorsOf = zipWith alternateColoredRow (cycle [White, Black])
