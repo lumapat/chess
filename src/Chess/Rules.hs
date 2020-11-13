@@ -71,15 +71,24 @@ royalRow :: ChessColor -> [ChessPiece]
 royalRow color = (ChessPiece color) <$> [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
 
 -- TODO: Docs
--- Rider squares are squares going in multiple directions
+-- Rider squares are squares going infinitely in a direction
 riderSquares :: Int -> Int -> ChessCoord -> [ChessCoord]
 riderSquares r f s = drop 1 $ zipWith ChessCoord ranks files
-    where rankInc = Rank r
-          fileInc = File f
-          startingRank = boardRank s
-          startingFile = boardFile s
-          ranks = [startingRank, startingRank + rankInc..]
-          files = [startingFile, startingFile + fileInc..]
+    where sr = boardRank s
+          sf = boardFile s
+          ranks = [sr, sr + (Rank r)]
+          files = [sf, sf + (File f)]
+
+
+toFirstCapture :: ChessBoard -> ChessColor -> [ChessCoord] -> [ChessCoord]
+toFirstCapture b color (c:cs) = untilFirstCapture $ (chessBoard b) !? (toIntCoords c)
+    where oppColor = opposingChessColor color
+          untilFirstCapture (Just (ChessPiece oppColor _)) = [c]
+          untilFirstCapture (Just Open)                    = c : toFirstCapture b color cs
+          untilFirstCapture _                              = []
+
+ridersToFirstCapture :: ChessBoard -> ChessColor -> (Int, Int) -> ChessCoord -> [ChessCoord]
+ridersToFirstCapture b color (r,f) = (toFirstCapture b color) . (riderSquares r f)
 
 moves :: ChessBoard -> ChessCoord -> Maybe [ChessCoord]
 moves b c = do p  <- pieceAt b c
