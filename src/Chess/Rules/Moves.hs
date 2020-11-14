@@ -6,6 +6,7 @@ module Chess.Rules.Moves
 import Chess.Rules.ChessBoard
     ( ChessBoard (..)
     , ChessCoord (..)
+    , inBoard
     , onSquare
     , tformCoord
     )
@@ -13,12 +14,20 @@ import Chess.Rules.Unit
 import Data.Bifunctor
 import Data.Ix (range)
 
+-- TODO: Identify Capture vs Move
+
+takeWhileInBoard :: ChessBoard -> [ChessCoord] -> [ChessCoord]
+takeWhileInBoard b = takeWhile (inBoard b)
+
 toFirstCapture :: ChessBoard -> ChessColor -> [ChessCoord] -> [ChessCoord]
 toFirstCapture b color (c:cs) = untilFirstCapture $ b `onSquare` c
     where oppColor = opposingChessColor color
           untilFirstCapture (Just (ChessPiece oppColor _)) = [c]
           untilFirstCapture (Just Open)                    = c : toFirstCapture b color cs
           untilFirstCapture _                              = []
+
+takeToFirstCapture :: ChessBoard -> ChessColor -> [ChessCoord] -> [ChessCoord]
+takeToFirstCapture b c = (toFirstCapture b c) . (takeWhileInBoard b)
 
 riderMvmts :: Int -> Int -> ChessCoord -> [ChessCoord]
 riderMvmts ri fi origin = drop 1 $ zipWith ChessCoord ranks files
@@ -30,53 +39,34 @@ riderMvmts ri fi origin = drop 1 $ zipWith ChessCoord ranks files
 hopperMvmts :: [ChessCoord] -> ChessCoord -> [ChessCoord]
 hopperMvmts incs (ChessCoord sr sf) = (tformCoord (sr+) (sf+)) <$> incs
 
--- pieceMoves :: ChessPieceClass -> Board -> ChessCoord -> [ChessCoord]
--- pieceMoves
--- pieceMoves _ King = hopperMvmts kingOffsets
---     where kingOffsets = filter (/= (0,0)) $ range ((-1, -1), (1,1))
+pieceMoves :: ChessPieceClass
+           -> ChessBoard
+           -> ChessColor
+           -> ChessCoord
+           -> [ChessCoord]
+pieceMoves King _ _ coord = hopperMvmts (toCoord <$> kingOffsets) coord
+    where kingOffsets = filter (/= (0,0)) $ range ((-1, -1), (1,1))
+          toCoord (a,b) = ChessCoord a b
 
--- pieceMoves _ Knight coord = rankHigh ++ fileHigh
---     where baseMvmts = [(-1,-1), (-1,1), (1,-1), (1,1)]
---           rankHigh = hopperMvmts ((bimap (2*) id) <$> baseMvmts) coord
---           fileHigh = hopperMvmts ((bimap id (2*)) <$> baseMvmts) coord
+pieceMoves Knight b color coord = rankHigh ++ fileHigh
+    where baseMvmts = [(-1,-1), (-1,1), (1,-1), (1,1)]
+          toCoord (a,b) = ChessCoord a b
+          rankHigh = hopperMvmts ((toCoord . (bimap (2*) id)) <$> baseMvmts) coord
+          fileHigh = hopperMvmts ((toCoord . (bimap id (2*))) <$> baseMvmts) coord
 
--- pieceMoves _ Rook =
+pieceMoves Bishop b color origin = ne ++ nw ++ se ++ sw
+    where ne = takeToFirstCapture b color $ riderMvmts 1 1 origin
+          nw = takeToFirstCapture b color $ riderMvmts 1 (-1) origin
+          se = takeToFirstCapture b color $ riderMvmts (-1) 1 origin
+          sw = takeToFirstCapture b color $ riderMvmts (-1) (-1) origin
 
--- pieceMoves _ Queen origin = (pieceMoves Rook origin) ++ (pieceMoves Bishop origin)
+pieceMoves Rook b color origin = up ++ down ++ left ++ right
+    where up = takeToFirstCapture b color $ riderMvmts 1 0 origin
+          down = takeToFirstCapture b color $ riderMvmts (-1) 0 origin
+          left = takeToFirstCapture b color $ riderMvmts 0 (-1) origin
+          right = takeToFirstCapture b color $ riderMvmts 0 1 origin
 
-----
--- pieceMove :: ChessPiece -> ChessBoard -> ChessCoord -> [ChessCoord]
--- pieceMove (ChessPiece _ King) b s = filter (validChessCoord b) $ toChessCoords <$> kingMvmts
---     where kingOffsets = filter (/= (0,0)) $ range ((-1, -1), (1,1))
---           kingMvmts = hopperMvmts kingOffsets (toIntCoords s)
+pieceMoves Queen b color origin = (pieceMoves Rook b color origin) ++ (pieceMoves Bishop b color origin)
 
--- pieceMove (ChessPiece _ Rook) b s = up ++ down ++ left ++ right
---     where takeValidRiderSquares ri fi sq = takeWhile (validChessCoord b) $ riderSquares ri fi sq
---           up    = takeValidRiderSquares 1 0 s
---           down  = takeValidRiderSquares (-1) 0 s
---           right = takeValidRiderSquares 0 1 s
---           left  = takeValidRiderSquares 0 (-1) s
-
--- pieceMove (ChessPiece _ Bishop) b s = ne ++ nw ++ se ++ sw
---     where takeValidRiderSquares ri fi sq = takeWhile (validChessCoord b) $ riderSquares ri fi sq
---           ne = takeValidRiderSquares 1 1 s
---           nw = takeValidRiderSquares 1 (-1) s
---           se = takeValidRiderSquares (-1) 1 s
---           sw = takeValidRiderSquares (-1) (-1) s
-
--- pieceMove (ChessPiece color Queen) b c = rookMoves ++ bishopMoves
---     where rookMoves = pieceMove (ChessPiece color Rook) b c
---           bishopMoves = pieceMove (ChessPiece color Bishop) b c
-
--- pieceMove (ChessPiece _ Knight) b s = toChessCoords <$> knightSquares
---     where baseMvmts = [(-1,-1), (-1,1), (1,-1), (1,1)]
---           origin = toIntCoords s
---           rankHigh = hopperMvmts ((bimap (2*) id) <$> baseMvmts) origin
---           fileHigh = hopperMvmts ((bimap id (2*)) <$> baseMvmts) origin
---           knightMvmts = hopperMvmts (rankHigh ++ fileHigh)
-
-
---           knightSquares = filter (inBounds $ chessBoard b) $ (fromStart s) <$> mvmts
-
--- pieceMove (ChessPiece color Pawn) b c = [toChessCoords (rank+1, file)]
---     where (rank, file) = toIntCoords c
+-- TODO: Actually fill this in
+pieceMoves Pawn b color origin = [origin]

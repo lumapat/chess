@@ -21,6 +21,7 @@ data ChessPieceClass = King
                      | Pawn
                      deriving (Eq, Show)
 
+-- TODO: Use Maybe instead
 data ChessPiece = ChessPiece ChessColor ChessPieceClass
                 | Open
                 deriving (Eq)

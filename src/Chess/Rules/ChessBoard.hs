@@ -1,7 +1,9 @@
 module Chess.Rules.ChessBoard
     ( ChessBoard (..)
     , ChessCoord (..)
+    , inBoard
     , onSquare
+    , pawnStartingRank
     , startingBoard
     , tformCoord
     ) where
@@ -30,17 +32,23 @@ onSquare b coord = (chessBoard b) Types.Board.!? (toBoardCoord coord)
 maxRanks = 8
 maxFiles = 8
 
+-- TODO: Codify this contract
+pawnStartingRank :: ChessColor -> Int
+pawnStartingRank Black = 6
+pawnStartingRank White = 1
+
+-- Coordinates start from top-right
 startingBoard :: ChessBoard
 startingBoard = ChessBoard $ newBoard maxRanks maxFiles boardSetup Open
     where alternatingColorsOf = zipWith alternateColoredRow (cycle [White, Black])
-          boardSetup = [ royalRow Black
-                       , peasantRow Black
-                       , blankRow
-                       , blankRow
-                       , blankRow
-                       , blankRow
+          boardSetup = [ royalRow White
                        , peasantRow White
-                       , royalRow White
+                       , blankRow
+                       , blankRow
+                       , blankRow
+                       , blankRow
+                       , peasantRow Black
+                       , royalRow Black
                        ]
 
 inBoard :: ChessBoard -> ChessCoord -> Bool
