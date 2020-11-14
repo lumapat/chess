@@ -2,11 +2,7 @@ module Chess.Game
     (
     ) where
 
-import Chess.Rules
-    ( ChessBoard (..)
-    , ChessCoord
-    , startingBoard
-    )
+import Chess.Rules.ChessBoard
 import Chess.Types.Unit
 
 data GameState = Play ChessColor

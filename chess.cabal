@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e48ab3bae78ee7a770d77d3c96958b380f704cb9cbcab14aee089706ae818148
+-- hash: 835af6e016426f744fed393e06903369e525dbcad668c72b4c6d6f97eb7091c0
 
 name:           chess
 version:        0.1.0.0
@@ -28,15 +28,17 @@ source-repository head
 library
   exposed-modules:
       Chess.Game
-      Chess.Rules
-      Chess.Types.Board
+      Chess.Rules.ChessBoard
+      Chess.Rules.Moves
       Chess.Types.Unit
+      Types.Board
   other-modules:
       Paths_chess
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , bifunctors
     , vector
   default-language: Haskell2010
 
@@ -49,6 +51,7 @@ executable chess-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bifunctors
     , chess
     , vector
   default-language: Haskell2010
@@ -63,6 +66,7 @@ test-suite chess-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , bifunctors
     , chess
     , vector
   default-language: Haskell2010
