@@ -1,4 +1,4 @@
-module Chess.Types.Unit
+module Chess.Rules.Unit
     ( ChessColor (..)
     , ChessPiece (..)
     , ChessPieceClass(..)

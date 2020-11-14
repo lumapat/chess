@@ -9,7 +9,7 @@ import Chess.Rules.ChessBoard
     , onSquare
     , tformCoord
     )
-import Chess.Types.Unit
+import Chess.Rules.Unit
 import Data.Bifunctor
 import Data.Ix (range)
 

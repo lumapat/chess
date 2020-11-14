@@ -3,7 +3,7 @@ module Chess.Game
     ) where
 
 import Chess.Rules.ChessBoard
-import Chess.Types.Unit
+import Chess.Rules.Unit
 
 data GameState = Play ChessColor
                | Check ChessColor

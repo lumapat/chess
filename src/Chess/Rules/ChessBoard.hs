@@ -6,7 +6,7 @@ module Chess.Rules.ChessBoard
     , tformCoord
     ) where
 
-import Chess.Types.Unit
+import Chess.Rules.Unit
 import Types.Board
 
 data ChessBoard = ChessBoard

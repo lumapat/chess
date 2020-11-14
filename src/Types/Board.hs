@@ -8,7 +8,6 @@ module Types.Board
     , newBoard
     ) where
 
-import Chess.Types.Unit
 import Control.Applicative
 import Control.Monad (mapM)
 import qualified Data.Vector as DV

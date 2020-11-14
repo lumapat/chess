@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 835af6e016426f744fed393e06903369e525dbcad668c72b4c6d6f97eb7091c0
+-- hash: c239ba623f602095803d1b8e216df18ee4b6e6ab46cad26d54962ac56cdc9377
 
 name:           chess
 version:        0.1.0.0
@@ -30,7 +30,7 @@ library
       Chess.Game
       Chess.Rules.ChessBoard
       Chess.Rules.Moves
-      Chess.Types.Unit
+      Chess.Rules.Unit
       Types.Board
   other-modules:
       Paths_chess
