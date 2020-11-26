@@ -3,6 +3,7 @@ module Chess.Rules.Unit
     , ChessPiece (..)
     , ChessPieceClass(..)
     , opposingChessColor
+    , opposingChessPieces
     ) where
 
 data ChessColor = White
@@ -25,6 +26,10 @@ data ChessPieceClass = King
 data ChessPiece = ChessPiece ChessColor ChessPieceClass
                 | Open
                 deriving (Eq)
+
+opposingChessPieces :: ChessPiece -> ChessPiece -> Bool
+opposingChessPieces (ChessPiece c1 _) (ChessPiece c2 _) = True
+opposingChessPieces _ _                                 = False
 
 instance Show ChessPiece where
     show Open = " "
