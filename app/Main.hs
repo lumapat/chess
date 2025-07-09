@@ -1,4 +1,6 @@
 module Main where
 
+import CLI (runCLI)
+
 main :: IO ()
-main = print "Hello!"
+main = runCLI
