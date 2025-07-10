@@ -4,10 +4,10 @@ module CLI (
     runCLI,
 ) where
 
-import Control.Applicative ((*>))
-import Control.Monad (sequence_)
-import Data.Either (isRight)
-import System.IO
+import           Control.Applicative ((*>))
+import           Control.Monad       (sequence_)
+import           Data.Either         (isRight)
+import           System.IO
 
 data CLIState = ContinueState | EndState
 data Turn = WhiteTurn | BlackTurn

@@ -3,16 +3,11 @@ module Chess.Rules.Moves
 
     ) where
 
-import Chess.Rules.ChessBoard
-    ( ChessBoard (..)
-    , ChessCoord (..)
-    , inBoard
-    , onSquare
-    , tformCoord
-    )
-import Chess.Rules.Unit
-import Data.Bifunctor
-import Data.Ix (range)
+import           Chess.Rules.ChessBoard (ChessBoard (..), ChessCoord (..),
+                                         inBoard, onSquare, tformCoord)
+import           Chess.Rules.Unit
+import           Data.Bifunctor
+import           Data.Ix                (range)
 
 data ChessMove = Move ChessPiece ChessCoord
                | Capture ChessPiece ChessCoord
@@ -56,7 +51,7 @@ moves :: ChessBoard
       -> ChessCoord
       -> [ChessMove]
 moves board origin = movesIfValid $ board `onSquare` origin
-    where movesIfValid Nothing = []
+    where movesIfValid Nothing  = []
           movesIfValid (Just p) = pieceMoves p
 
           pieceMoves :: ChessPiece -> [ChessMove]

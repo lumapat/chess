@@ -8,8 +8,8 @@ module Chess.Rules.ChessBoard
     , tformCoord
     ) where
 
-import Chess.Rules.Unit
-import Types.Board
+import           Chess.Rules.Unit
+import           Types.Board
 
 data ChessBoard = ChessBoard
     { chessBoard :: Board ChessPiece

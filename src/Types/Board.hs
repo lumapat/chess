@@ -8,10 +8,10 @@ module Types.Board
     , newBoard
     ) where
 
-import Control.Applicative
-import Control.Monad (mapM)
-import qualified Data.Vector as DV
-import Data.Ix (inRange)
+import           Control.Applicative
+import           Control.Monad       (mapM)
+import           Data.Ix             (inRange)
+import qualified Data.Vector         as DV
 
 type BoardCol a = DV.Vector a
 type BoardRow a = DV.Vector a
@@ -24,7 +24,7 @@ data BoardCoord = BoardCoord
 data Board a = Board
     { boardMaxRows :: Int
     , boardMaxCols :: Int
-    , boardMatrix :: BoardRow (BoardCol a)
+    , boardMatrix  :: BoardRow (BoardCol a)
     } deriving (Eq, Show)
 
 newBoard :: Int -> Int -> [[a]] -> a -> Board a

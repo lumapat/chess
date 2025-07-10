@@ -2,8 +2,8 @@ module Chess.Game
     (
     ) where
 
-import Chess.Rules.ChessBoard
-import Chess.Rules.Unit
+import           Chess.Rules.ChessBoard
+import           Chess.Rules.Unit
 
 data GameState = Play ChessColor
                | Check ChessColor
