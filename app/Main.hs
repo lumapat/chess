@@ -1,6 +1,10 @@
 module Main where
 
-import           CLI (runCLI)
+import           CLI (CLIProcessor (..), nextTurn, runCLI)
+
+instance CLIProcessor () where
+    showBoard _ = "TODO"
+    playMove _ (turn, s) = Right ((), nextTurn turn)
 
 main :: IO ()
-main = runCLI
+main = runCLI ()

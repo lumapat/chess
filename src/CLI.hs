@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module CLI (
+    CLIProcessor (..),
+    nextTurn,
     runCLI,
 ) where
 
@@ -10,8 +12,13 @@ import           Data.Either         (isRight)
 import           System.IO
 
 data CLIState = ContinueState | EndState
+-- TODO: Export this somewhere else
 data Turn = WhiteTurn | BlackTurn
-type CLIStep = (Turn, CLIState)
+type CLIStep a = (a, Turn, CLIState)
+
+class CLIProcessor a where
+    showBoard :: a -> String
+    playMove :: a -> (Turn, String) -> Either String (a, Turn)
 
 turnPrompt :: Turn -> String
 turnPrompt WhiteTurn = "(White to play) "
@@ -20,24 +27,30 @@ turnPrompt BlackTurn = "(Black to play) "
 nextTurn WhiteTurn = BlackTurn
 nextTurn BlackTurn = WhiteTurn
 
-prompt :: Turn -> IO CLIStep
-prompt turn = do
+prompt :: CLIProcessor a => CLIStep a -> IO (CLIStep a)
+prompt (chessProg, turn, _) = do
     cmd <- putStr (turnPrompt turn) *> hFlush stdout *> getLine
     process cmd
     where
-        process "quit" = putStrLn "Quitting" *> return (turn, EndState)
-        process input  = putStrLn ("You typed '" ++ input ++ "'") *> return (nextTurn turn, ContinueState)
+        process "q"    = process "quit"
+        process "quit" = putStrLn "Quitting..." *> return (chessProg, turn, EndState)
+        process "h"    = process "help"
+        process "help" = putStrLn "TODO" *> return (chessProg, turn, ContinueState)
+        process "show" = putStrLn (showBoard chessProg)  *> return (chessProg, turn, ContinueState)
+        process input  = processPlay (chessProg, turn, ContinueState) input
 
--- TODO: Need the following
---   Chess engine injection (to validate commands)
-runCLI :: IO ()
-runCLI = untilQuit prompt WhiteTurn
-
-untilQuit :: (Turn -> IO CLIStep)
-          -> Turn
-          -> IO ()
-untilQuit process turn = (process turn) >>= untilQuit'
+processPlay :: CLIProcessor a => CLIStep a -> String -> IO (CLIStep a)
+processPlay step@(_, _, EndState) _ = return step
+processPlay (chessProg, turn, state) move = process' $ playMove chessProg (turn, move)
     where
-        untilQuit' :: CLIStep -> IO ()
-        untilQuit' (_, EndState) = return ()
-        untilQuit' (nextTurn, _) = untilQuit process nextTurn
+        process' (Left error) = putStrLn ("Got error: " ++ error) *> return (chessProg, turn, state)
+        process' (Right (newProg, nextTurn)) = putStrLn ("Played: " ++ move) *> return (newProg, nextTurn, state)
+
+runCLI :: CLIProcessor a => a -> IO ()
+runCLI chessProg = untilQuit prompt (chessProg, WhiteTurn, ContinueState)
+
+untilQuit :: CLIProcessor a => (CLIStep a -> IO (CLIStep a))
+          -> CLIStep a
+          -> IO ()
+untilQuit _ (_, _, EndState) = return ()
+untilQuit process step       = (process step) >>= (untilQuit process)
