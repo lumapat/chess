@@ -9,26 +9,35 @@ import Control.Monad (sequence_)
 import Data.Either (isRight)
 import System.IO
 
-
+data CLIState = ContinueState | EndState
 data Turn = WhiteTurn | BlackTurn
+type CLIStep = (Turn, CLIState)
 
 turnPrompt :: Turn -> String
 turnPrompt WhiteTurn = "(White to play) "
 turnPrompt BlackTurn = "(Black to play) "
 
-prompt :: Turn -> IO (Either String ())
+nextTurn WhiteTurn = BlackTurn
+nextTurn BlackTurn = WhiteTurn
+
+prompt :: Turn -> IO CLIStep
 prompt turn = do
     cmd <- putStr (turnPrompt turn) *> hFlush stdout *> getLine
     process cmd
     where
-        process "quit" = return $ Left "Quitting..."
-        process input  = putStrLn ("You typed '" ++ input ++ "'") *> return (Right ())
+        process "quit" = putStrLn "Quitting" *> return (turn, EndState)
+        process input  = putStrLn ("You typed '" ++ input ++ "'") *> return (nextTurn turn, ContinueState)
 
 -- TODO: Need the following
---   Ability to quit (user quit, retries, game win)
 --   Chess engine injection (to validate commands)
 runCLI :: IO ()
-runCLI = sequence_ $ (prompt . toTurn) <$> [0..]
+runCLI = untilQuit prompt WhiteTurn
+
+untilQuit :: (Turn -> IO CLIStep)
+          -> Turn
+          -> IO ()
+untilQuit process turn = (process turn) >>= untilQuit'
     where
-        toTurn n | n `mod` 2 == 0 = WhiteTurn
-                 | otherwise  = BlackTurn
+        untilQuit' :: CLIStep -> IO ()
+        untilQuit' (_, EndState) = return ()
+        untilQuit' (nextTurn, _) = untilQuit process nextTurn
