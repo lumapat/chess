@@ -1,10 +1,8 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.1.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: deee4e42f1dce08bba03a5c69a5702a465d5629f217b83194c4a71c1d1c914ee
 
 name:           chess
 version:        0.1.0.0
@@ -27,12 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      Chess.Game
-      Chess.Rules.ChessBoard
-      Chess.Rules.Moves
-      Chess.Rules.Unit
+      Chess.Rules
       CLI
-      Types.Board
   other-modules:
       Paths_chess
   hs-source-dirs:
