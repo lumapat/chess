@@ -116,12 +116,12 @@ chessBoard = ChessBoard (V.fromList $ V.fromList <$> rawBoard)
   where
     rawBoard =
       [ ChessBoardSquare . Just . black <$> startingPromotedRow,
+        ChessBoardSquare . Just . black <$> startingPawnRow,
         blankRow,
         blankRow,
         blankRow,
         blankRow,
-        blankRow,
-        blankRow,
+        ChessBoardSquare . Just . white <$> startingPawnRow,
         ChessBoardSquare . Just . white <$> startingPromotedRow
       ]
 
