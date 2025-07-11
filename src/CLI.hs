@@ -8,9 +8,9 @@ module CLI
 where
 
 import Chess.Rules (Turn (..))
-import Control.Applicative ((*>))
 import Control.Monad (sequence_)
 import Data.Either (isRight)
+import Data.Functor (($>))
 import System.IO (hFlush, stdout)
 
 data CLIState = ContinueState | EndState
@@ -34,18 +34,18 @@ prompt (chessProg, turn, _) = do
   process cmd
   where
     process "q" = process "quit"
-    process "quit" = putStrLn "Quitting..." *> return (chessProg, turn, EndState)
+    process "quit" = putStrLn "Quitting..." $> (chessProg, turn, EndState)
     process "h" = process "help"
-    process "help" = putStrLn "TODO" *> return (chessProg, turn, ContinueState)
-    process "show" = putStrLn (showBoard chessProg) *> return (chessProg, turn, ContinueState)
+    process "help" = putStrLn "TODO" $> (chessProg, turn, ContinueState)
+    process "show" = putStrLn (showBoard chessProg) $> (chessProg, turn, ContinueState)
     process input = processPlay (chessProg, turn, ContinueState) input
 
 processPlay :: CLIProcessor a => CLIStep a -> String -> IO (CLIStep a)
 processPlay step@(_, _, EndState) _ = return step
 processPlay (chessProg, turn, state) move = process' $ playMove chessProg (turn, move)
   where
-    process' (Left error) = putStrLn ("Got error: " ++ error) *> return (chessProg, turn, state)
-    process' (Right (newProg, nextTurn)) = putStrLn ("Played: " ++ move) *> return (newProg, nextTurn, state)
+    process' (Left error) = putStrLn ("Got error: " ++ error) $> (chessProg, turn, state)
+    process' (Right (newProg, nextTurn)) = putStrLn ("Played: " ++ move) $> (newProg, nextTurn, state)
 
 runCLI :: CLIProcessor a => a -> IO ()
 runCLI chessProg = untilQuit prompt (chessProg, WhiteTurn, ContinueState)
@@ -56,4 +56,4 @@ untilQuit ::
   CLIStep a ->
   IO ()
 untilQuit _ (_, _, EndState) = return ()
-untilQuit process step = (process step) >>= (untilQuit process)
+untilQuit process step = process step >>= untilQuit process
