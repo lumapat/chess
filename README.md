@@ -2,8 +2,8 @@
 
 ### TODO LIST
 
-- [ ] Create engine
-- [ ] Show board
+- [x] Create engine
+- [x] Show board
 - [ ] Move pawns
 - [ ] Move generator
 - [ ] Impl knights

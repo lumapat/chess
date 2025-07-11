@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Chess.Board
       Chess.Rules
       CLI
   other-modules:

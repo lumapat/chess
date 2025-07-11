@@ -4,3 +4,5 @@ module Chess.Rules
 where
 
 data Turn = WhiteTurn | BlackTurn
+
+data Engine = Engine
