@@ -5,7 +5,6 @@ module Chess.Rules
     Engine,
     newEngine,
     play,
-    currTurn,
   )
 where
 
@@ -18,9 +17,6 @@ newtype Engine = Engine ChessBoard
 instance Show Engine where
   show :: Engine -> String
   show (Engine e) = show e
-
-currTurn :: Engine -> Turn
-currTurn _ = WhiteTurn
 
 nextTurn WhiteTurn = BlackTurn
 nextTurn BlackTurn = WhiteTurn
