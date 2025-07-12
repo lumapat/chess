@@ -1,7 +1,8 @@
 {-# LANGUAGE InstanceSigs #-}
 
 module Chess.Board
-  ( ChessPosition (..),
+  ( ChessBoard,
+    ChessPosition (..),
     ChessRank (..),
     ChessFile (..),
     -- Board

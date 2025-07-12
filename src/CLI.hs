@@ -2,7 +2,6 @@
 
 module CLI
   ( CLIProcessor (..),
-    nextTurn,
     runCLI,
   )
 where
@@ -24,9 +23,6 @@ class CLIProcessor a where
 turnPrompt :: Turn -> String
 turnPrompt WhiteTurn = "(White to play) "
 turnPrompt BlackTurn = "(Black to play) "
-
-nextTurn WhiteTurn = BlackTurn
-nextTurn BlackTurn = WhiteTurn
 
 prompt :: CLIProcessor a => CLIStep a -> IO (CLIStep a)
 prompt (chessProg, turn, _) = do

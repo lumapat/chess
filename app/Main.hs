@@ -1,12 +1,11 @@
 module Main where
 
-import CLI (CLIProcessor (..), nextTurn, runCLI)
-import Chess.Board (chessBoard)
-import Chess.Rules (Turn)
+import CLI (CLIProcessor (..), runCLI)
+import qualified Chess.Rules as Rules
 
-instance CLIProcessor () where
-  showBoard _ = show chessBoard
-  playMove _ (turn, s) = Right ((), nextTurn turn)
+instance CLIProcessor Rules.Engine where
+  showBoard e = show e
+  playMove e (turn, s) = Rules.play e (turn, s)
 
 main :: IO ()
-main = runCLI ()
+main = runCLI Rules.newEngine
