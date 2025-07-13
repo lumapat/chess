@@ -77,7 +77,11 @@ data ChessMoveRestriction = MoveUnrestricted | CheckRestricted | Checkmate
 data ChessMove
   = PieceMove
       { movingPiece :: ChessPiece,
-        pieceCapture :: Bool,
+        dest :: ChessPosition,
+        restriction :: ChessMoveRestriction
+      }
+  | PieceCapture
+      { capturingPiece :: ChessPiece,
         dest :: ChessPosition,
         restriction :: ChessMoveRestriction
       }
@@ -188,13 +192,15 @@ parseChessMove ::
   (PieceGenerator -> ChessPiece) ->
   LT.Parser ChessMove
 parseChessMove color =
-  PieceMove (color pawn) <$> parseCaptures
-    <*> parseChessPosition
-    <*> return MoveUnrestricted
+  ( PieceMove (color pawn)
+      <$> parseChessPosition
+      <*> return MoveUnrestricted
+  )
+    <|> (PieceCapture (color pawn) <$> (parseCaptures *> parseChessPosition) <*> return MoveUnrestricted)
     <* LT.endOfInput
 
-parseCaptures :: LT.Parser Bool
-parseCaptures = LT.char 'x' $> True <|> return False
+parseCaptures :: LT.Parser Char
+parseCaptures = LT.char 'x'
 
 parseChessPosition :: LT.Parser ChessPosition
 parseChessPosition = ChessPosition <$> parseChessFile <*> parseChessRank
