@@ -8,7 +8,9 @@ module Chess.Rules
   )
 where
 
-import Chess.Board (ChessBoard, ChessColor (..), ChessMove (..), chessBoard, coloring, parseMove)
+import Chess.Board (ChessBoard, chessBoard)
+import Chess.Move (parseMove)
+import Chess.Terminology (ChessColor (..), coloring)
 import Data.Functor (($>))
 
 data Turn = WhiteTurn | BlackTurn
