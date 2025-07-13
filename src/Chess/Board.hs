@@ -2,11 +2,12 @@
 
 module Chess.Board
   ( ChessBoard,
-    ChessPosition (..),
-    ChessRank (..),
-    ChessFile (..),
     ChessColor (..),
     ChessColoring,
+    ChessFile (..),
+    ChessMove (..),
+    ChessPosition (..),
+    ChessRank (..),
     coloring,
     -- Board
     chessBoard,
@@ -172,6 +173,13 @@ chessBoard = ChessBoard (V.fromList $ V.fromList <$> rawBoard)
       ]
 
     blankRow = replicate 8 (ChessBoardSquare Nothing)
+
+-- TODO Test this
+squareAt :: ChessBoard -> ChessPosition -> ChessBoardSquare
+squareAt (ChessBoard v) (ChessPosition file rank) = (V.!) ((V.!) v file') rank'
+  where
+    file' = 8 - fromEnum file
+    rank' = 8 - fromEnum rank
 
 instance Show ChessBoard where
   show (ChessBoard v) =
