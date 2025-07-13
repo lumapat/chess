@@ -5,12 +5,21 @@ module Chess.Board
     ChessPosition (..),
     ChessRank (..),
     ChessFile (..),
+    ChessColor (..),
+    ChessColoring,
+    coloring,
     -- Board
     chessBoard,
+    -- Moves
+    parseMove,
   )
 where
 
+import Control.Applicative ((<|>))
+import qualified Data.Attoparsec.Text.Lazy as LT
+import Data.Functor (($>))
 import Data.List (intercalate)
+import Data.Text (pack)
 import qualified Data.Vector as V
 
 data ChessRank = R1 | R2 | R3 | R4 | R5 | R6 | R7 | R8 deriving (Eq, Show)
@@ -59,7 +68,31 @@ instance Enum ChessFile where
 
 data ChessPosition = ChessPosition ChessFile ChessRank
 
-newtype ChessPiece = ChessPiece Char
+data ChessMoveRestriction = MoveUnrestricted | CheckRestricted | Checkmate
+
+-- TODO: Add non-pawn chess pieces
+-- TODO: Disambiguating moves
+-- TODO: Promotions
+-- TODO: En passant
+data ChessMove
+  = PieceMove
+      { movingPiece :: ChessPiece,
+        pieceCapture :: Bool,
+        dest :: ChessPosition,
+        restriction :: ChessMoveRestriction
+      }
+  | QueensideCastle
+  | KingsideCastle
+
+newtype ChessPiece = ChessPiece Char deriving (Eq)
+
+fromNotation :: Char -> Maybe PieceGenerator
+fromNotation 'B' = Just bishop
+fromNotation 'K' = Just king
+fromNotation 'N' = Just knight
+fromNotation 'Q' = Just queen
+fromNotation 'R' = Just rook
+fromNotation _ = Nothing
 
 instance Show ChessPiece where
   show (ChessPiece p) = [p]
@@ -72,13 +105,21 @@ instance Show ChessBoardSquare where
 
 data ChessColor = ChessBlack | ChessWhite
 
+-- TODO: HSdocs
 type PieceGenerator = ChessColor -> ChessPiece
 
-black :: PieceGenerator -> ChessPiece
+black :: ChessColoring
 black gen = gen ChessBlack
 
-white :: PieceGenerator -> ChessPiece
+white :: ChessColoring
 white gen = gen ChessWhite
+
+-- TODO: HSdocs
+type ChessColoring = PieceGenerator -> ChessPiece
+
+coloring :: ChessColor -> ChessColoring
+coloring ChessBlack = black
+coloring ChessWhite = white
 
 bishop :: PieceGenerator
 bishop ChessWhite = ChessPiece '♗'
@@ -135,3 +176,53 @@ instance Show ChessBoard where
       ( unwords . fmap show . V.toList
           <$> V.toList v
       )
+
+-- TODO: Parsec parse is the following
+-- [Piece][File/Rank][Captures]FileRank[Restriction]
+parseMove :: ChessColoring -> String -> Either String ChessMove
+parseMove _ "O-O" = Right KingsideCastle
+parseMove _ "O-O-O" = Right QueensideCastle
+parseMove color s = LT.parseOnly (parseChessMove color) (pack s)
+
+parseChessMove ::
+  (PieceGenerator -> ChessPiece) ->
+  LT.Parser ChessMove
+parseChessMove color =
+  PieceMove (color pawn) <$> parseCaptures
+    <*> parseChessPosition
+    <*> return MoveUnrestricted
+    <* LT.endOfInput
+
+parseCaptures :: LT.Parser Bool
+parseCaptures = LT.char 'x' $> True <|> return False
+
+parseChessPosition :: LT.Parser ChessPosition
+parseChessPosition = ChessPosition <$> parseChessFile <*> parseChessRank
+
+parseChessRank :: LT.Parser ChessRank
+parseChessRank = LT.choice ranks
+  where
+    ranks =
+      [ LT.char '1' $> R1,
+        LT.char '2' $> R2,
+        LT.char '3' $> R3,
+        LT.char '4' $> R4,
+        LT.char '5' $> R5,
+        LT.char '6' $> R6,
+        LT.char '7' $> R7,
+        LT.char '8' $> R8
+      ]
+
+parseChessFile :: LT.Parser ChessFile
+parseChessFile = LT.choice files
+  where
+    files =
+      [ LT.char 'a' $> FA,
+        LT.char 'b' $> FB,
+        LT.char 'c' $> FC,
+        LT.char 'd' $> FD,
+        LT.char 'e' $> FE,
+        LT.char 'f' $> FF,
+        LT.char 'g' $> FG,
+        LT.char 'h' $> FH
+      ]

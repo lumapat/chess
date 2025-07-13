@@ -8,7 +8,8 @@ module Chess.Rules
   )
 where
 
-import Chess.Board (ChessBoard, chessBoard)
+import Chess.Board (ChessBoard, ChessColor (..), chessBoard, coloring, parseMove)
+import Data.Functor (($>))
 
 data Turn = WhiteTurn | BlackTurn
 
@@ -21,8 +22,14 @@ instance Show Engine where
 nextTurn WhiteTurn = BlackTurn
 nextTurn BlackTurn = WhiteTurn
 
+colorFromTurn BlackTurn = ChessBlack
+colorFromTurn WhiteTurn = ChessWhite
+
 play :: Engine -> (Turn, String) -> Either String (Engine, Turn)
-play e (turn, s) = Right (e, nextTurn turn)
+play e (turn, s) =
+  parseMove (coloring $ colorFromTurn turn) s $> (e, nextTurn turn)
+
+-- play e (turn, s) = Right (e, nextTurn turn)
 
 newEngine :: Engine
 newEngine = Engine chessBoard
