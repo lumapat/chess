@@ -1,7 +1,10 @@
 module Chess.Board
-  ( ChessBoard,
+  ( BoardDirection (..),
+    ChessBoard,
+    ChessBoardSquare (..),
     chessBoard,
     squareAt,
+    squaresFrom,
   )
 where
 
@@ -26,13 +29,23 @@ import Chess.Terminology
 import Data.List (intercalate)
 import qualified Data.Vector as V
 
-newtype ChessBoardSquare = ChessBoardSquare (Maybe ChessPiece)
+-- DO NOT EXPORT
+newtype ChessBoardRawSquare = ChessBoardRawSquare (Maybe ChessPiece)
+
+data ChessBoardSquare = ChessBoardSquare
+  { squarePiece :: Maybe ChessPiece,
+    squarePos :: ChessPosition
+  }
+
+instance Show ChessBoardRawSquare where
+  show (ChessBoardRawSquare (Just piece)) = show piece
+  show (ChessBoardRawSquare Nothing) = "_"
 
 instance Show ChessBoardSquare where
-  show (ChessBoardSquare (Just piece)) = show piece
-  show (ChessBoardSquare Nothing) = "_"
+  show (ChessBoardSquare (Just piece) _) = show piece
+  show (ChessBoardSquare Nothing _) = "_"
 
-newtype ChessBoard = ChessBoard (V.Vector (V.Vector ChessBoardSquare))
+newtype ChessBoard = ChessBoard (V.Vector (V.Vector ChessBoardRawSquare))
 
 startingPromotedRow :: [PieceGenerator]
 startingPromotedRow = [rook, knight, bishop, queen, king, bishop, knight, rook]
@@ -44,24 +57,45 @@ chessBoard :: ChessBoard
 chessBoard = ChessBoard (V.fromList $ V.fromList <$> rawBoard)
   where
     rawBoard =
-      [ ChessBoardSquare . Just . black <$> startingPromotedRow,
-        ChessBoardSquare . Just . black <$> startingPawnRow,
+      [ ChessBoardRawSquare . Just . black <$> startingPromotedRow,
+        ChessBoardRawSquare . Just . black <$> startingPawnRow,
         blankRow,
         blankRow,
         blankRow,
         blankRow,
-        ChessBoardSquare . Just . white <$> startingPawnRow,
-        ChessBoardSquare . Just . white <$> startingPromotedRow
+        ChessBoardRawSquare . Just . white <$> startingPawnRow,
+        ChessBoardRawSquare . Just . white <$> startingPromotedRow
       ]
 
-    blankRow = replicate 8 (ChessBoardSquare Nothing)
+    blankRow = replicate 8 (ChessBoardRawSquare Nothing)
 
 -- TODO Test this
 squareAt :: ChessBoard -> ChessPosition -> ChessBoardSquare
-squareAt (ChessBoard v) (ChessPosition file rank) = (V.!) ((V.!) v rank') file'
+squareAt (ChessBoard v) pos@(ChessPosition file rank) = ChessBoardSquare sq pos
   where
     file' = fromEnum file - 1 -- Offset by 1 since enums are 1-indexed
     rank' = 8 - fromEnum rank -- Subtract from 8 since ranks are stored in reverse
+    ChessBoardRawSquare sq = (V.!) ((V.!) v rank') file'
+
+-- Directions of a square relative to a ChessPosition
+-- North is towards black's side, and south is towards white's side
+data BoardDirection
+  = BoardNorth
+  | BoardSouth
+  | BoardEast
+  | BoardWest
+  | BoardNE
+  | BoardNW
+  | BoardSE
+  | BoardSW
+  | BoardL
+
+squaresFrom :: ChessBoard -> ChessPosition -> BoardDirection -> [ChessBoardSquare]
+squaresFrom board (ChessPosition file rank) = fmap (squareAt board) . squaresFrom'
+  where
+    squaresFrom' :: BoardDirection -> [ChessPosition]
+    squaresFrom' BoardNorth = ChessPosition file <$> enumFromTo rank maxBound
+    squaresFrom' _ = []
 
 instance Show ChessBoard where
   show (ChessBoard v) =

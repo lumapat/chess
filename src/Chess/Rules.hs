@@ -8,7 +8,7 @@ module Chess.Rules
   )
 where
 
-import Chess.Board (ChessBoard, chessBoard, squareAt)
+import Chess.Board (BoardDirection (..), ChessBoard, chessBoard, squaresFrom)
 import Chess.Move (ChessMove (..), parseMove)
 import Chess.Terminology (ChessColor (..), coloring)
 import Data.Functor (($>))
@@ -36,7 +36,7 @@ play e@(Engine board) (turn, s) = parseMove color s >>= makeMove
     color = coloring $ colorFromTurn turn
 
     makeMove :: ChessMove -> Either String (Engine, Turn)
-    makeMove (PieceMove piece pos _) = Left $ show (squareAt board pos)
+    makeMove (PieceMove piece pos _) = Left $ show (squaresFrom board pos BoardNorth)
     makeMove _ = Right (e, nextTurn turn)
 
 newEngine :: Engine

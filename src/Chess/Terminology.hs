@@ -67,6 +67,18 @@ instance Enum ChessFile where
   toEnum 7 = FG
   toEnum _ = FH
 
+instance Bounded ChessFile where
+  minBound :: ChessFile
+  minBound = FA
+  maxBound :: ChessFile
+  maxBound = FH
+
+instance Bounded ChessRank where
+  minBound :: ChessRank
+  minBound = R1
+  maxBound :: ChessRank
+  maxBound = R8
+
 newtype ChessPiece = ChessPiece Char deriving (Eq)
 
 fromNotation :: Char -> Maybe PieceGenerator
