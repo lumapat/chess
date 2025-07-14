@@ -105,10 +105,11 @@ squaresFrom board (ChessPosition file rank) = fmap (squareAt board) . squaresFro
     squaresFrom' _ = []
 
     -- Helpers
+    -- Each helper auto excludes the inputted square
     untilMax :: (Bounded a, Enum a) => a -> [a]
-    untilMax e = enumFromTo e maxBound
+    untilMax e = tail (enumFromTo e maxBound)
     untilMin :: (Bounded a, Enum a) => a -> [a]
-    untilMin e = reverse (enumFromTo minBound e)
+    untilMin e = tail (reverse (enumFromTo minBound e))
 
 instance Show ChessBoard where
   show (ChessBoard v) =
