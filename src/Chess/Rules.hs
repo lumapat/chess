@@ -36,7 +36,7 @@ play e@(Engine board) (turn, s) = parseMove color s >>= makeMove
     color = coloring $ colorFromTurn turn
 
     makeMove :: ChessMove -> Either String (Engine, Turn)
-    makeMove (PieceMove piece pos _) = Left $ show (squaresFrom board pos BoardNorth)
+    makeMove (PieceMove piece pos _) = Left $ show (squaresFrom board pos BoardNW)
     makeMove _ = Right (e, nextTurn turn)
 
 newEngine :: Engine

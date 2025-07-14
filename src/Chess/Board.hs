@@ -90,12 +90,26 @@ data BoardDirection
   | BoardSW
   | BoardL
 
+-- TODO: Docs
 squaresFrom :: ChessBoard -> ChessPosition -> BoardDirection -> [ChessBoardSquare]
 squaresFrom board (ChessPosition file rank) = fmap (squareAt board) . squaresFrom'
   where
     squaresFrom' :: BoardDirection -> [ChessPosition]
-    squaresFrom' BoardNorth = ChessPosition file <$> enumFromTo rank maxBound
+    squaresFrom' BoardNorth = ChessPosition file <$> untilMax rank
+    squaresFrom' BoardSouth = ChessPosition file <$> untilMin rank
+    squaresFrom' BoardEast = flip ChessPosition rank <$> untilMax file
+    squaresFrom' BoardWest = flip ChessPosition rank <$> untilMin file
+    squaresFrom' BoardNE = zipWith ChessPosition (untilMax file) (untilMax rank)
+    squaresFrom' BoardNW = zipWith ChessPosition (untilMin file) (untilMax rank)
+    squaresFrom' BoardSE = zipWith ChessPosition (untilMax file) (untilMin rank)
+    squaresFrom' BoardSW = zipWith ChessPosition (untilMin file) (untilMin rank)
     squaresFrom' _ = []
+
+    -- Helpers
+    untilMax :: (Bounded a, Enum a) => a -> [a]
+    untilMax e = enumFromTo e maxBound
+    untilMin :: (Bounded a, Enum a) => a -> [a]
+    untilMin e = reverse (enumFromTo minBound e)
 
 instance Show ChessBoard where
   show (ChessBoard v) =
