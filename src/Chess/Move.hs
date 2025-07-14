@@ -1,4 +1,4 @@
-module Chess.Move (ChessPosition (..), parseMove) where
+module Chess.Move (ChessMove (..), ChessPosition (..), parseMove) where
 
 import Chess.Terminology
 import Control.Applicative ((<|>))
@@ -35,6 +35,7 @@ parseMove _ "O-O" = Right KingsideCastle
 parseMove _ "O-O-O" = Right QueensideCastle
 parseMove color s = LT.parseOnly (parseChessMove color) (pack s)
 
+-- TODO: Require pawn captures to specify file at least
 parseChessMove ::
   (PieceGenerator -> ChessPiece) ->
   LT.Parser ChessMove

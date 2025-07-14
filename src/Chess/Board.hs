@@ -1,6 +1,7 @@
 module Chess.Board
   ( ChessBoard,
     chessBoard,
+    squareAt,
   )
 where
 
@@ -57,10 +58,10 @@ chessBoard = ChessBoard (V.fromList $ V.fromList <$> rawBoard)
 
 -- TODO Test this
 squareAt :: ChessBoard -> ChessPosition -> ChessBoardSquare
-squareAt (ChessBoard v) (ChessPosition file rank) = (V.!) ((V.!) v file') rank'
+squareAt (ChessBoard v) (ChessPosition file rank) = (V.!) ((V.!) v rank') file'
   where
-    file' = 8 - fromEnum file
-    rank' = 8 - fromEnum rank
+    file' = fromEnum file - 1 -- Offset by 1 since enums are 1-indexed
+    rank' = 8 - fromEnum rank -- Subtract from 8 since ranks are stored in reverse
 
 instance Show ChessBoard where
   show (ChessBoard v) =
