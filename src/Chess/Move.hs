@@ -30,21 +30,21 @@ data ChessMove
 
 -- TODO: Parsec parse is the following
 -- [Piece][File/Rank][Captures]FileRank[Restriction]
-parseMove :: ChessColoring -> String -> Either String ChessMove
+parseMove :: ChessColor -> String -> Either String ChessMove
 parseMove _ "O-O" = Right KingsideCastle
 parseMove _ "O-O-O" = Right QueensideCastle
 parseMove color s = LT.parseOnly (parseChessMove color) (pack s)
 
 -- TODO: Require pawn captures to specify file at least
 parseChessMove ::
-  (PieceGenerator -> ChessPiece) ->
+  ChessColor ->
   LT.Parser ChessMove
 parseChessMove color =
-  ( PieceMove (color pawn)
+  ( PieceMove (ChessPiece color ChessPawn)
       <$> parseChessPosition
       <*> return MoveUnrestricted
   )
-    <|> (PieceCapture (color pawn) <$> (parseCaptures *> parseChessPosition) <*> return MoveUnrestricted)
+    <|> (PieceCapture (ChessPiece color ChessPawn) <$> (parseCaptures *> parseChessPosition) <*> return MoveUnrestricted)
     <* LT.endOfInput
 
 parseCaptures :: LT.Parser Char

@@ -11,20 +11,10 @@ where
 import Chess.Move (ChessPosition (..))
 import Chess.Terminology
   ( ChessColor (..),
-    ChessColoring,
     ChessFile (..),
-    ChessPiece,
+    ChessPiece (..),
+    ChessPieceType (..),
     ChessRank (..),
-    PieceGenerator,
-    bishop,
-    black,
-    coloring,
-    king,
-    knight,
-    pawn,
-    queen,
-    rook,
-    white,
   )
 import Data.List (intercalate)
 import qualified Data.Vector as V
@@ -47,24 +37,33 @@ instance Show ChessBoardSquare where
 
 newtype ChessBoard = ChessBoard (V.Vector (V.Vector ChessBoardRawSquare))
 
-startingPromotedRow :: [PieceGenerator]
-startingPromotedRow = [rook, knight, bishop, queen, king, bishop, knight, rook]
+startingPromotedRow :: [ChessPieceType]
+startingPromotedRow =
+  [ ChessRook,
+    ChessKnight,
+    ChessBishop,
+    ChessQueen,
+    ChessKing,
+    ChessBishop,
+    ChessKnight,
+    ChessRook
+  ]
 
-startingPawnRow :: [PieceGenerator]
-startingPawnRow = replicate 8 pawn
+startingPawnRow :: [ChessPieceType]
+startingPawnRow = replicate 8 ChessPawn
 
 chessBoard :: ChessBoard
 chessBoard = ChessBoard (V.fromList $ V.fromList <$> rawBoard)
   where
     rawBoard =
-      [ ChessBoardRawSquare . Just . black <$> startingPromotedRow,
-        ChessBoardRawSquare . Just . black <$> startingPawnRow,
+      [ ChessBoardRawSquare . Just . ChessPiece ChessBlack <$> startingPromotedRow,
+        ChessBoardRawSquare . Just . ChessPiece ChessBlack <$> startingPawnRow,
         blankRow,
         blankRow,
         blankRow,
         blankRow,
-        ChessBoardRawSquare . Just . white <$> startingPawnRow,
-        ChessBoardRawSquare . Just . white <$> startingPromotedRow
+        ChessBoardRawSquare . Just . ChessPiece ChessWhite <$> startingPawnRow,
+        ChessBoardRawSquare . Just . ChessPiece ChessWhite <$> startingPromotedRow
       ]
 
     blankRow = replicate 8 (ChessBoardRawSquare Nothing)

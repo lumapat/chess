@@ -1,13 +1,13 @@
 {-# LANGUAGE InstanceSigs #-}
 
 module Chess.Terminology
-  ( ChessPiece (..),
-    ChessFile (..),
+  ( ChessFile (..),
+    ChessPiece (..),
+    ChessPieceType (..),
     ChessRank (..),
     PieceGenerator,
     -- Colors
     ChessColor (..),
-    ChessColoring,
     black,
     coloring,
     white,
@@ -21,11 +21,38 @@ module Chess.Terminology
   )
 where
 
-data ChessColor = ChessBlack | ChessWhite
+data ChessColor = ChessBlack | ChessWhite deriving (Eq)
 
-data ChessRank = R1 | R2 | R3 | R4 | R5 | R6 | R7 | R8 deriving (Eq, Show)
+data ChessPieceType
+  = ChessBishop
+  | ChessKing
+  | ChessKnight
+  | ChessPawn
+  | ChessRook
+  | ChessQueen
+  deriving (Eq)
 
-data ChessFile = FA | FB | FC | FD | FE | FF | FG | FH deriving (Eq, Show)
+data ChessRank
+  = R1
+  | R2
+  | R3
+  | R4
+  | R5
+  | R6
+  | R7
+  | R8
+  deriving (Eq, Show)
+
+data ChessFile
+  = FA
+  | FB
+  | FC
+  | FD
+  | FE
+  | FF
+  | FG
+  | FH
+  deriving (Eq, Show)
 
 instance Enum ChessRank where
   fromEnum R1 = 1
@@ -79,7 +106,11 @@ instance Bounded ChessRank where
   maxBound :: ChessRank
   maxBound = R8
 
-newtype ChessPiece = ChessPiece Char deriving (Eq)
+data ChessPiece = ChessPiece
+  { pieceColor :: ChessColor,
+    pieceType :: ChessPieceType
+  }
+  deriving (Eq)
 
 fromNotation :: Char -> Maybe PieceGenerator
 fromNotation 'B' = Just bishop
@@ -90,7 +121,18 @@ fromNotation 'R' = Just rook
 fromNotation _ = Nothing
 
 instance Show ChessPiece where
-  show (ChessPiece p) = [p]
+  show (ChessPiece ChessWhite ChessBishop) = ['♗']
+  show (ChessPiece ChessBlack ChessBishop) = ['♝']
+  show (ChessPiece ChessWhite ChessKnight) = ['♘']
+  show (ChessPiece ChessBlack ChessKnight) = ['♞']
+  show (ChessPiece ChessWhite ChessKing) = ['♔']
+  show (ChessPiece ChessBlack ChessKing) = ['♚']
+  show (ChessPiece ChessWhite ChessPawn) = ['♙']
+  show (ChessPiece ChessBlack ChessPawn) = ['♟']
+  show (ChessPiece ChessWhite ChessQueen) = ['♕']
+  show (ChessPiece ChessBlack ChessQueen) = ['♛']
+  show (ChessPiece ChessWhite ChessRook) = ['♖']
+  show (ChessPiece ChessBlack ChessRook) = ['♜']
 
 -- TODO: HSdocs
 type PieceGenerator = ChessColor -> ChessPiece
@@ -109,25 +151,25 @@ coloring ChessBlack = black
 coloring ChessWhite = white
 
 bishop :: PieceGenerator
-bishop ChessWhite = ChessPiece '♗'
-bishop ChessBlack = ChessPiece '♝'
+bishop ChessWhite = ChessPiece ChessWhite ChessBishop
+bishop ChessBlack = ChessPiece ChessWhite ChessBishop
 
 knight :: PieceGenerator
-knight ChessWhite = ChessPiece '♘'
-knight ChessBlack = ChessPiece '♞'
+knight ChessWhite = ChessPiece ChessWhite ChessKnight
+knight ChessBlack = ChessPiece ChessBlack ChessKnight
 
 king :: PieceGenerator
-king ChessWhite = ChessPiece '♔'
-king ChessBlack = ChessPiece '♚'
+king ChessWhite = ChessPiece ChessWhite ChessKing
+king ChessBlack = ChessPiece ChessBlack ChessKing
 
 pawn :: PieceGenerator
-pawn ChessWhite = ChessPiece '♙'
-pawn ChessBlack = ChessPiece '♟'
+pawn ChessWhite = ChessPiece ChessWhite ChessPawn
+pawn ChessBlack = ChessPiece ChessBlack ChessPawn
 
 queen :: PieceGenerator
-queen ChessWhite = ChessPiece '♕'
-queen ChessBlack = ChessPiece '♛'
+queen ChessWhite = ChessPiece ChessWhite ChessQueen
+queen ChessBlack = ChessPiece ChessBlack ChessQueen
 
 rook :: PieceGenerator
-rook ChessWhite = ChessPiece '♖'
-rook ChessBlack = ChessPiece '♜'
+rook ChessWhite = ChessPiece ChessWhite ChessRook
+rook ChessBlack = ChessPiece ChessBlack ChessRook
