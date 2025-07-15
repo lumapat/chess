@@ -16,7 +16,9 @@ import Chess.Terminology
     ChessPieceType (..),
     ChessRank (..),
   )
+import Control.Monad (msum)
 import Data.List (intercalate)
+import Data.List.Extra (chunksOf)
 import qualified Data.Vector as V
 
 -- DO NOT EXPORT
@@ -35,7 +37,7 @@ instance Show ChessBoardSquare where
   show (ChessBoardSquare (Just piece) _) = show piece
   show (ChessBoardSquare Nothing _) = "_"
 
-newtype ChessBoard = ChessBoard (V.Vector (V.Vector ChessBoardRawSquare))
+newtype ChessBoard = ChessBoard (V.Vector ChessBoardRawSquare)
 
 startingPromotedRow :: [ChessPieceType]
 startingPromotedRow =
@@ -49,32 +51,47 @@ startingPromotedRow =
     ChessRook
   ]
 
+-- Maximum number of squares in a single row on a chessboard
+maxSquares :: Int
+maxSquares = 8
+
 startingPawnRow :: [ChessPieceType]
-startingPawnRow = replicate 8 ChessPawn
+startingPawnRow = replicate maxSquares ChessPawn
 
 chessBoard :: ChessBoard
-chessBoard = ChessBoard (V.fromList $ V.fromList <$> rawBoard)
+chessBoard = ChessBoard (V.fromList rawBoard)
   where
     rawBoard =
-      [ ChessBoardRawSquare . Just . ChessPiece ChessBlack <$> startingPromotedRow,
-        ChessBoardRawSquare . Just . ChessPiece ChessBlack <$> startingPawnRow,
-        blankRow,
-        blankRow,
-        blankRow,
-        blankRow,
-        ChessBoardRawSquare . Just . ChessPiece ChessWhite <$> startingPawnRow,
-        ChessBoardRawSquare . Just . ChessPiece ChessWhite <$> startingPromotedRow
-      ]
+      msum
+        [ ChessBoardRawSquare . Just . ChessPiece ChessBlack <$> startingPromotedRow,
+          ChessBoardRawSquare . Just . ChessPiece ChessBlack <$> startingPawnRow,
+          blankRow,
+          blankRow,
+          blankRow,
+          blankRow,
+          ChessBoardRawSquare . Just . ChessPiece ChessWhite <$> startingPawnRow,
+          ChessBoardRawSquare . Just . ChessPiece ChessWhite <$> startingPromotedRow
+        ]
 
-    blankRow = replicate 8 (ChessBoardRawSquare Nothing)
+    blankRow = replicate maxSquares (ChessBoardRawSquare Nothing)
+
+-- Accessors to the raw board
+-- DO NOT EXPORT
+toFileIndex :: ChessFile -> Int
+toFileIndex file = fromEnum file - 1 -- Offset by 1 since enums are 1-indexed
+
+toRankIndex :: ChessRank -> Int
+toRankIndex rank = 8 - fromEnum rank -- Subtract from 8 since ranks are stored in reverse
+
+toRawIndex :: ChessFile -> ChessRank -> Int
+toRawIndex file rank = toRankIndex rank * maxSquares + toFileIndex file
 
 -- TODO Test this
 squareAt :: ChessBoard -> ChessPosition -> ChessBoardSquare
 squareAt (ChessBoard v) pos@(ChessPosition file rank) = ChessBoardSquare sq pos
   where
-    file' = fromEnum file - 1 -- Offset by 1 since enums are 1-indexed
-    rank' = 8 - fromEnum rank -- Subtract from 8 since ranks are stored in reverse
-    ChessBoardRawSquare sq = (V.!) ((V.!) v rank') file'
+    idx = toRawIndex file rank
+    ChessBoardRawSquare sq = (V.!) v idx
 
 -- Directions of a square relative to a ChessPosition
 -- North is towards black's side, and south is towards white's side
@@ -115,6 +132,5 @@ instance Show ChessBoard where
   show (ChessBoard v) =
     intercalate
       "\n"
-      ( unwords . fmap show . V.toList
-          <$> V.toList v
-      )
+      $ (fmap unwords . chunksOf maxSquares . fmap show . V.toList)
+        v

@@ -38,6 +38,7 @@ library
       attoparsec
     , base >=4.7 && <5
     , bifunctors
+    , extra
     , text
     , vector
   default-language: Haskell2010
@@ -54,6 +55,7 @@ executable chess-exe
     , base >=4.7 && <5
     , bifunctors
     , chess
+    , extra
     , text
     , vector
   default-language: Haskell2010
@@ -71,6 +73,7 @@ test-suite chess-test
     , base >=4.7 && <5
     , bifunctors
     , chess
+    , extra
     , text
     , vector
   default-language: Haskell2010
