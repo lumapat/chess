@@ -4,7 +4,7 @@
 
 - [x] Create engine
 - [x] Show board
-- [ ] Move pawns
+- [x] Move pawns
 - [ ] Move generator
 - [ ] Impl knights
 - [ ] Impl bishops
@@ -14,5 +14,6 @@
 - [ ] Game state checks (normal, check, checkmate, draw)
 - [ ] Special move - en passant
 - [ ] Special move - castling
+- [ ] Special move - promotion
 - [ ] (CLI) Add history nav buttons for ultimate experience
 - [ ] (CLI) Add reverse search for even bigger payoff

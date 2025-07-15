@@ -8,11 +8,28 @@ module Chess.Rules
   )
 where
 
-import Chess.Board (BoardDirection (..), ChessBoard, ChessBoardSquare (..), chessBoard, moveTo, squaresFrom)
-import Chess.Move (ChessMove (..), ChessPosition, parseMove)
-import Chess.Terminology (ChessColor (..), ChessPiece (..), ChessPieceType (..), coloring)
+import Chess.Board
+  ( BoardDirection (..),
+    ChessBoard,
+    ChessBoardSquare (..),
+    chessBoard,
+    moveTo,
+    squaresFrom,
+  )
+import Chess.Move
+  ( ChessMove (..),
+    ChessPosition,
+    parseMove,
+  )
+import Chess.Terminology
+  ( ChessColor (..),
+    ChessPiece (..),
+    ChessPieceType (..),
+    ChessRank (..),
+    coloring,
+  )
 import Data.Functor (($>))
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, isNothing)
 
 data Turn = WhiteTurn | BlackTurn
 
@@ -46,21 +63,37 @@ play e (turn, s) = parseMove color s >>= makeMove
 movePiece :: Engine -> ChessPiece -> ChessPosition -> Either String Engine
 movePiece (Engine board) piece dest = makeMove movers
   where
-    movers =
-      take 1 $
-        filter (isJust . squarePiece) $
-          findMovers board piece dest
+    movers :: [ChessBoardSquare]
+    movers = findMovers board piece dest
     -- TODO: Detect if capture (error out) or not
     makeMove :: [ChessBoardSquare] -> Either String Engine
     makeMove [sq] = Right $ Engine $ fst (moveTo board (squarePos sq) dest)
-    makeMove _ = Left $ "Move: " ++ show piece ++ " " ++ show dest ++ " NYI"
+    makeMove [] = Left $ "No moves possible for " ++ show piece ++ " " ++ show dest
+    makeMove _ = Left $ "Multiple " ++ show piece ++ " can move to " ++ show dest
 
-findMovers :: ChessBoard -> ChessPiece -> (ChessPosition -> [ChessBoardSquare])
-findMovers board (ChessPiece color ChessPawn) = flip (squaresFrom board) (dir color)
+-- Finds pieces that can move to the destination by applying
+-- the opposite movement pattern to them. Usually, using the same
+-- movement pattern as the piece would yield the squares that the
+-- piece can use too
+findMovers :: ChessBoard -> ChessPiece -> ChessPosition -> [ChessBoardSquare]
+findMovers board piece@(ChessPiece color ChessPawn) fromPos = validate pawnSquares
   where
+    -- Pawns can only move forward, so we can check if they're in their
+    -- starting rank to check for 2 places (or 1 place for any other time)
+    pawnSquares = take 2 $ squaresFrom board fromPos (dir color)
     dir ChessBlack = BoardNorth
     dir ChessWhite = BoardSouth
-findMovers _ _ = const []
+
+    validate :: [ChessBoardSquare] -> [ChessBoardSquare]
+    validate (sq : sqs)
+      | isNothing (squarePiece sq) = validate sqs
+      | squarePiece sq == Just piece = [sq]
+      | otherwise = []
+    validate [] = []
+
+    startingRank ChessBlack = R7
+    startingRank ChessWhite = R2
+findMovers _ _ _ = []
 
 newEngine :: Engine
 newEngine = Engine chessBoard
