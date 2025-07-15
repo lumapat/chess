@@ -8,10 +8,11 @@ module Chess.Rules
   )
 where
 
-import Chess.Board (BoardDirection (..), ChessBoard, chessBoard, squaresFrom)
-import Chess.Move (ChessMove (..), parseMove)
-import Chess.Terminology (ChessColor (..), coloring)
+import Chess.Board (BoardDirection (..), ChessBoard, ChessBoardSquare (..), chessBoard, moveTo, squaresFrom)
+import Chess.Move (ChessMove (..), ChessPosition, parseMove)
+import Chess.Terminology (ChessColor (..), ChessPiece (..), ChessPieceType (..), coloring)
 import Data.Functor (($>))
+import Data.Maybe (isJust)
 
 data Turn = WhiteTurn | BlackTurn
 
@@ -30,13 +31,32 @@ colorFromTurn BlackTurn = ChessBlack
 colorFromTurn WhiteTurn = ChessWhite
 
 play :: Engine -> (Turn, String) -> Either String (Engine, Turn)
-play e@(Engine board) (turn, s) = parseMove color s >>= makeMove
+play e (turn, s) = parseMove color s >>= makeMove
   where
     color = colorFromTurn turn
 
     makeMove :: ChessMove -> Either String (Engine, Turn)
-    makeMove (PieceMove piece pos _) = Left $ show (squaresFrom board pos BoardNW)
+    makeMove (PieceMove piece pos _) = Right (movePiece e piece pos, nextTurn turn)
     makeMove _ = Right (e, nextTurn turn)
+
+-- TODO: Need to check that the move is legal
+movePiece :: Engine -> ChessPiece -> ChessPosition -> Engine
+movePiece (Engine board) piece dest = Engine $ makeMove movers
+  where
+    movers =
+      take 1 $
+        filter (isJust . squarePiece) $
+          findMovers board piece dest
+    -- TODO: Detect if capture (error out) or not
+    makeMove [sq] = fst (moveTo board (squarePos sq) dest)
+    makeMove _ = board
+
+findMovers :: ChessBoard -> ChessPiece -> (ChessPosition -> [ChessBoardSquare])
+findMovers board (ChessPiece color ChessPawn) = flip (squaresFrom board) (dir color)
+  where
+    dir ChessBlack = BoardNorth
+    dir ChessWhite = BoardSouth
+findMovers _ _ = const []
 
 newEngine :: Engine
 newEngine = Engine chessBoard

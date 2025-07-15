@@ -3,6 +3,7 @@ module Chess.Board
     ChessBoard,
     ChessBoardSquare (..),
     chessBoard,
+    moveTo,
     squareAt,
     squaresFrom,
   )
@@ -83,15 +84,14 @@ toFileIndex file = fromEnum file - 1 -- Offset by 1 since enums are 1-indexed
 toRankIndex :: ChessRank -> Int
 toRankIndex rank = 8 - fromEnum rank -- Subtract from 8 since ranks are stored in reverse
 
-toRawIndex :: ChessFile -> ChessRank -> Int
-toRawIndex file rank = toRankIndex rank * maxSquares + toFileIndex file
+toRawIndex :: ChessPosition -> Int
+toRawIndex (ChessPosition file rank) = toRankIndex rank * maxSquares + toFileIndex file
 
 -- TODO Test this
 squareAt :: ChessBoard -> ChessPosition -> ChessBoardSquare
-squareAt (ChessBoard v) pos@(ChessPosition file rank) = ChessBoardSquare sq pos
+squareAt (ChessBoard v) pos = ChessBoardSquare sq pos
   where
-    idx = toRawIndex file rank
-    ChessBoardRawSquare sq = (V.!) v idx
+    ChessBoardRawSquare sq = (V.!) v (toRawIndex pos)
 
 -- Directions of a square relative to a ChessPosition
 -- North is towards black's side, and south is towards white's side
@@ -127,6 +127,28 @@ squaresFrom board (ChessPosition file rank) = fmap (squareAt board) . squaresFro
     untilMax e = tail (enumFromTo e maxBound)
     untilMin :: (Bounded a, Enum a) => a -> [a]
     untilMin e = tail (reverse (enumFromTo minBound e))
+
+-- Private DO NOT EXPORT
+writeSquares :: ChessBoard -> [ChessBoardSquare] -> ChessBoard
+writeSquares (ChessBoard board) squares = ChessBoard $ (V.//) board (toRawSquare <$> squares)
+  where
+    toRawSquare :: ChessBoardSquare -> (Int, ChessBoardRawSquare)
+    toRawSquare (ChessBoardSquare piece pos) = (toRawIndex pos, ChessBoardRawSquare piece)
+
+-- Moves a piece that's on a source square to a destination square
+-- If a piece exists on that destination square, then return a capture
+-- TODO: Replace with State monad
+moveTo :: ChessBoard -> ChessPosition -> ChessPosition -> (ChessBoard, Maybe ChessPiece)
+moveTo b srcPos = overwriteMaybe (squareAt b srcPos)
+  where
+    piece = squareAt b srcPos
+
+    overwriteMaybe :: ChessBoardSquare -> ChessPosition -> (ChessBoard, Maybe ChessPiece)
+    overwriteMaybe (ChessBoardSquare (Just piece) srcPos) destPos =
+      ( writeSquares b [ChessBoardSquare (Just piece) destPos, ChessBoardSquare Nothing srcPos],
+        squarePiece $ squareAt b destPos
+      )
+    overwriteMaybe _ _ = (b, Nothing)
 
 instance Show ChessBoard where
   show (ChessBoard v) =
