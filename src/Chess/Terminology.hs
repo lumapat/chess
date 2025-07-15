@@ -41,7 +41,18 @@ data ChessRank
   | R6
   | R7
   | R8
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show ChessRank where
+  show :: ChessRank -> String
+  show R1 = "1"
+  show R2 = "2"
+  show R3 = "3"
+  show R4 = "4"
+  show R5 = "5"
+  show R6 = "6"
+  show R7 = "7"
+  show R8 = "8"
 
 data ChessFile
   = FA
@@ -52,7 +63,17 @@ data ChessFile
   | FF
   | FG
   | FH
-  deriving (Eq, Show)
+  deriving (Eq)
+
+instance Show ChessFile where
+  show FA = "a"
+  show FB = "b"
+  show FC = "c"
+  show FD = "d"
+  show FE = "e"
+  show FF = "f"
+  show FG = "g"
+  show FH = "h"
 
 instance Enum ChessRank where
   fromEnum R1 = 1

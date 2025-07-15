@@ -1,12 +1,24 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module Chess.Move (ChessMove (..), ChessPosition (..), parseMove) where
 
 import Chess.Terminology
+  ( ChessColor,
+    ChessFile (..),
+    ChessPiece (ChessPiece),
+    ChessPieceType (..),
+    ChessRank (..),
+  )
 import Control.Applicative ((<|>))
 import qualified Data.Attoparsec.Text.Lazy as LT
 import Data.Functor (($>))
 import Data.Text (pack)
 
 data ChessPosition = ChessPosition ChessFile ChessRank
+
+instance Show ChessPosition where
+  show :: ChessPosition -> String
+  show (ChessPosition file rank) = show file ++ show rank
 
 data ChessMoveRestriction = MoveUnrestricted | CheckRestricted | Checkmate
 
