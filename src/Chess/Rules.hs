@@ -36,20 +36,24 @@ play e (turn, s) = parseMove color s >>= makeMove
     color = colorFromTurn turn
 
     makeMove :: ChessMove -> Either String (Engine, Turn)
-    makeMove (PieceMove piece pos _) = Right (movePiece e piece pos, nextTurn turn)
+    makeMove (PieceMove piece pos _) = advance <$> movePiece e piece pos
     makeMove _ = Right (e, nextTurn turn)
 
+    advance :: Engine -> (Engine, Turn)
+    advance e = (e, nextTurn turn)
+
 -- TODO: Need to check that the move is legal
-movePiece :: Engine -> ChessPiece -> ChessPosition -> Engine
-movePiece (Engine board) piece dest = Engine $ makeMove movers
+movePiece :: Engine -> ChessPiece -> ChessPosition -> Either String Engine
+movePiece (Engine board) piece dest = makeMove movers
   where
     movers =
       take 1 $
         filter (isJust . squarePiece) $
           findMovers board piece dest
     -- TODO: Detect if capture (error out) or not
-    makeMove [sq] = fst (moveTo board (squarePos sq) dest)
-    makeMove _ = board
+    makeMove :: [ChessBoardSquare] -> Either String Engine
+    makeMove [sq] = Right $ Engine $ fst (moveTo board (squarePos sq) dest)
+    makeMove _ = Left $ "Move: " ++ show piece ++ " " ++ show dest ++ " NYI"
 
 findMovers :: ChessBoard -> ChessPiece -> (ChessPosition -> [ChessBoardSquare])
 findMovers board (ChessPiece color ChessPawn) = flip (squaresFrom board) (dir color)
