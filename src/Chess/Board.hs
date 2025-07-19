@@ -108,7 +108,7 @@ data BoardDirection
 
 -- TODO: Docs
 squaresFrom :: ChessBoard -> ChessPosition -> BoardDirection -> [ChessBoardSquare]
-squaresFrom board (ChessPosition file rank) = fmap (squareAt board) . squaresFrom'
+squaresFrom board pos@(ChessPosition file rank) = fmap (squareAt board) . squaresFrom'
   where
     squaresFrom' :: BoardDirection -> [ChessPosition]
     squaresFrom' BoardNorth = ChessPosition file <$> untilMax rank
@@ -119,7 +119,30 @@ squaresFrom board (ChessPosition file rank) = fmap (squareAt board) . squaresFro
     squaresFrom' BoardNW = zipWith ChessPosition (untilMin file) (untilMax rank)
     squaresFrom' BoardSE = zipWith ChessPosition (untilMax file) (untilMin rank)
     squaresFrom' BoardSW = zipWith ChessPosition (untilMin file) (untilMin rank)
-    squaresFrom' _ = []
+    -- squaresFrom' BoardL = filter (isValidL pos) $ makeL pos <$> lOffsets
+    squaresFrom' BoardL = makeL pos <$> lOffsets
+
+    -- L offsets
+    lOffsets :: [(Int, Int)]
+    lOffsets =
+      tupMult
+        <$> [(2, 1), (1, 2)]
+        <*> [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+      where
+        tupMult (a, b) (c, d) = (a * b, c * d)
+
+    makeL :: ChessPosition -> (Int, Int) -> ChessPosition
+    makeL (ChessPosition file rank) (df, dr) = ChessPosition file' rank'
+      where
+        file' = toEnum (fromEnum file + df)
+        rank' = toEnum (fromEnum rank + dr)
+
+    isValidL :: ChessPosition -> ChessPosition -> Bool
+    isValidL (ChessPosition f1 r1) (ChessPosition f2 r2) = d == (1, 2) || d == (2, 1)
+      where
+        d = (fDelta, rDelta)
+        fDelta = abs $ fromEnum f1 - fromEnum f2
+        rDelta = abs $ fromEnum r1 - fromEnum r2
 
     -- Helpers
     -- Each helper auto excludes the inputted square

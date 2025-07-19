@@ -93,6 +93,13 @@ findMovers board piece@(ChessPiece color ChessPawn) fromPos = validate pawnSquar
 
     startingRank ChessBlack = R7
     startingRank ChessWhite = R2
+findMovers board piece@(ChessPiece color ChessKnight) fromPos = validate knightSquares
+  where
+    knightSquares = squaresFrom board fromPos BoardL
+
+    -- Knights can jump, so no need for any collision detection
+    validate :: [ChessBoardSquare] -> [ChessBoardSquare]
+    validate = filter ((== Just piece) . squarePiece)
 findMovers _ _ _ = []
 
 newEngine :: Engine
