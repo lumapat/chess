@@ -8,8 +8,8 @@
 - [x] Move generator
 - [x] Impl knights
 - [x] Impl bishops
-- [ ] Impl rooks
-- [ ] Impl queens
+- [x] Impl rooks
+- [x] Impl queens
 - [ ] Impl kings
 - [ ] Impl captures
 - [ ] (CLI) Implement stack tracer for debugging

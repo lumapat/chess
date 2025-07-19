@@ -117,6 +117,45 @@ findMovers board piece@(ChessPiece color ChessBishop) fromPos = validate bishopS
         | squarePiece sq == Just piece = [sq]
         | otherwise = []
     validate' [] = []
+findMovers board piece@(ChessPiece color ChessRook) fromPos = validate rookSquares
+  where
+    rookSquares = squaresFrom board fromPos <$> [BoardNorth, BoardSouth, BoardEast, BoardWest]
+
+    validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
+    validate = mconcat . fmap validate'
+
+    validate' :: [ChessBoardSquare] -> [ChessBoardSquare]
+    validate'
+      (sq : sqs)
+        | isNothing (squarePiece sq) = validate' sqs
+        | squarePiece sq == Just piece = [sq]
+        | otherwise = []
+    validate' [] = []
+findMovers board piece@(ChessPiece color ChessQueen) fromPos = validate queenSquares
+  where
+    -- Combination of rook and bishop squares
+    queenSquares =
+      squaresFrom board fromPos
+        <$> [ BoardNorth,
+              BoardSouth,
+              BoardEast,
+              BoardWest,
+              BoardNE,
+              BoardNW,
+              BoardSE,
+              BoardSW
+            ]
+
+    validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
+    validate = mconcat . fmap validate'
+
+    validate' :: [ChessBoardSquare] -> [ChessBoardSquare]
+    validate'
+      (sq : sqs)
+        | isNothing (squarePiece sq) = validate' sqs
+        | squarePiece sq == Just piece = [sq]
+        | otherwise = []
+    validate' [] = []
 findMovers _ _ _ = []
 
 -- Debugging hook for the engine
