@@ -3,6 +3,7 @@
 module Chess.Rules
   ( Turn (..),
     Engine,
+    debug,
     newEngine,
     play,
   )
@@ -101,6 +102,11 @@ findMovers board piece@(ChessPiece color ChessKnight) fromPos = validate knightS
     validate :: [ChessBoardSquare] -> [ChessBoardSquare]
     validate = filter ((== Just piece) . squarePiece)
 findMovers _ _ _ = []
+
+-- Debugging hook for the engine
+-- Override this with any kind of debug you want
+debug :: Engine -> [String] -> String
+debug _ _ = "TODO"
 
 newEngine :: Engine
 newEngine = Engine chessBoard
