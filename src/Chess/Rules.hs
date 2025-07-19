@@ -102,6 +102,21 @@ findMovers board piece@(ChessPiece color ChessKnight) fromPos = validate knightS
     -- Knights can jump, so no need for any collision detection
     validate :: [ChessBoardSquare] -> [ChessBoardSquare]
     validate = filter ((== Just piece) . squarePiece)
+findMovers board piece@(ChessPiece color ChessBishop) fromPos = validate bishopSquares
+  where
+    bishopSquares = squaresFrom board fromPos <$> [BoardNE, BoardNW, BoardSE, BoardSW]
+
+    validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
+    validate = mconcat . fmap validate'
+
+    -- TODO: Should consolidate some collision detection and empty square detection
+    validate' :: [ChessBoardSquare] -> [ChessBoardSquare]
+    validate'
+      (sq : sqs)
+        | isNothing (squarePiece sq) = validate' sqs
+        | squarePiece sq == Just piece = [sq]
+        | otherwise = []
+    validate' [] = []
 findMovers _ _ _ = []
 
 -- Debugging hook for the engine

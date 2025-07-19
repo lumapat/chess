@@ -7,7 +7,7 @@
 - [x] Move pawns
 - [x] Move generator
 - [x] Impl knights
-- [ ] Impl bishops
+- [x] Impl bishops
 - [ ] Impl rooks
 - [ ] Impl queens
 - [ ] Impl kings
