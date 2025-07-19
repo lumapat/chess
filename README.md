@@ -10,7 +10,7 @@
 - [x] Impl bishops
 - [x] Impl rooks
 - [x] Impl queens
-- [ ] Impl kings
+- [x] Impl kings
 - [ ] Impl captures
 - [ ] (CLI) Implement stack tracer for debugging
 - [ ] Game state checks (normal, check, checkmate, draw)

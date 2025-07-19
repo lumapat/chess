@@ -156,7 +156,28 @@ findMovers board piece@(ChessPiece color ChessQueen) fromPos = validate queenSqu
         | squarePiece sq == Just piece = [sq]
         | otherwise = []
     validate' [] = []
-findMovers _ _ _ = []
+findMovers board piece@(ChessPiece color ChessKing) fromPos = validate kingSquares
+  where
+    -- All directions but only the first of each
+    kingSquares =
+      squaresFrom board fromPos
+        <$> [ BoardNorth,
+              BoardSouth,
+              BoardEast,
+              BoardWest,
+              BoardNE,
+              BoardNW,
+              BoardSE,
+              BoardSW
+            ]
+
+    validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
+    validate ((sq : _) : d)
+      | isNothing (squarePiece sq) = validate d
+      | squarePiece sq == Just piece = [sq]
+      | otherwise = []
+    validate ([] : d) = validate d
+    validate [] = []
 
 -- Debugging hook for the engine
 -- Override this with any kind of debug you want
