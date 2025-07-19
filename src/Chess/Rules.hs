@@ -78,20 +78,13 @@ movePiece (Engine board) piece dest = makeMove movers
 -- movement pattern as the piece would yield the squares that the
 -- piece can use too
 findMovers :: ChessBoard -> ChessPiece -> ChessPosition -> [ChessBoardSquare]
-findMovers board piece@(ChessPiece color ChessPawn) fromPos = validate pawnSquares
+findMovers board piece@(ChessPiece color ChessPawn) fromPos = takeFirstNonEmpty piece pawnSquares
   where
     -- Pawns can only move forward, so we can check if they're in their
     -- starting rank to check for 2 places (or 1 place for any other time)
     pawnSquares = take (numPawnSquares fromPos) $ squaresFrom board fromPos (dir color)
     dir ChessBlack = BoardNorth
     dir ChessWhite = BoardSouth
-
-    validate :: [ChessBoardSquare] -> [ChessBoardSquare]
-    validate (sq : sqs)
-      | isNothing (squarePiece sq) = validate sqs
-      | squarePiece sq == Just piece = [sq]
-      | otherwise = []
-    validate [] = []
 
     -- Only allow 2 square move if the pawn is on a starting rank
     numPawnSquares (ChessPosition _ rank)
@@ -115,30 +108,13 @@ findMovers board piece@(ChessPiece color ChessBishop) fromPos = validate bishopS
     bishopSquares = squaresFrom board fromPos <$> [BoardNE, BoardNW, BoardSE, BoardSW]
 
     validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
-    validate = mconcat . fmap validate'
-
-    -- TODO: Should consolidate some collision detection and empty square detection
-    validate' :: [ChessBoardSquare] -> [ChessBoardSquare]
-    validate'
-      (sq : sqs)
-        | isNothing (squarePiece sq) = validate' sqs
-        | squarePiece sq == Just piece = [sq]
-        | otherwise = []
-    validate' [] = []
+    validate = mconcat . fmap (takeFirstNonEmpty piece)
 findMovers board piece@(ChessPiece color ChessRook) fromPos = validate rookSquares
   where
     rookSquares = squaresFrom board fromPos <$> [BoardNorth, BoardSouth, BoardEast, BoardWest]
 
     validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
-    validate = mconcat . fmap validate'
-
-    validate' :: [ChessBoardSquare] -> [ChessBoardSquare]
-    validate'
-      (sq : sqs)
-        | isNothing (squarePiece sq) = validate' sqs
-        | squarePiece sq == Just piece = [sq]
-        | otherwise = []
-    validate' [] = []
+    validate = mconcat . fmap (takeFirstNonEmpty piece)
 findMovers board piece@(ChessPiece color ChessQueen) fromPos = validate queenSquares
   where
     -- Combination of rook and bishop squares
@@ -155,20 +131,12 @@ findMovers board piece@(ChessPiece color ChessQueen) fromPos = validate queenSqu
             ]
 
     validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
-    validate = mconcat . fmap validate'
-
-    validate' :: [ChessBoardSquare] -> [ChessBoardSquare]
-    validate'
-      (sq : sqs)
-        | isNothing (squarePiece sq) = validate' sqs
-        | squarePiece sq == Just piece = [sq]
-        | otherwise = []
-    validate' [] = []
-findMovers board piece@(ChessPiece color ChessKing) fromPos = validate kingSquares
+    validate = mconcat . fmap (takeFirstNonEmpty piece)
+findMovers board piece@(ChessPiece color ChessKing) fromPos = mconcat $ takeFirstNonEmpty piece <$> kingSquares
   where
     -- All directions but only the first of each
     kingSquares =
-      squaresFrom board fromPos
+      take 1 . squaresFrom board fromPos
         <$> [ BoardNorth,
               BoardSouth,
               BoardEast,
@@ -179,13 +147,14 @@ findMovers board piece@(ChessPiece color ChessKing) fromPos = validate kingSquar
               BoardSW
             ]
 
-    validate :: [[ChessBoardSquare]] -> [ChessBoardSquare]
-    validate ((sq : _) : d)
-      | isNothing (squarePiece sq) = validate d
-      | squarePiece sq == Just piece = [sq]
-      | otherwise = []
-    validate ([] : d) = validate d
-    validate [] = []
+-- This takes the first non-empty square since most pieces
+-- collide with other pieces.
+takeFirstNonEmpty :: ChessPiece -> [ChessBoardSquare] -> [ChessBoardSquare]
+takeFirstNonEmpty piece (sq : sqs)
+  | isNothing (squarePiece sq) = takeFirstNonEmpty piece sqs
+  | squarePiece sq == Just piece = [sq]
+  | otherwise = []
+takeFirstNonEmpty _ [] = []
 
 -- Debugging hook for the engine
 -- Override this with any kind of debug you want
