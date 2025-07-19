@@ -5,12 +5,14 @@
 - [x] Create engine
 - [x] Show board
 - [x] Move pawns
-- [ ] Move generator
-- [ ] Impl knights
+- [x] Move generator
+- [x] Impl knights
 - [ ] Impl bishops
 - [ ] Impl rooks
 - [ ] Impl queens
 - [ ] Impl kings
+- [ ] Impl captures
+- [ ] (CLI) Implement stack tracer for debugging
 - [ ] Game state checks (normal, check, checkmate, draw)
 - [ ] Special move - en passant
 - [ ] Special move - castling
