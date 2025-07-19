@@ -129,7 +129,7 @@ squaresFrom board pos@(ChessPosition file rank) = fmap (squareAt board) . square
         <$> [(2, 1), (1, 2)]
         <*> [(1, 1), (1, -1), (-1, 1), (-1, -1)]
       where
-        tupMult (a, b) (c, d) = (a * b, c * d)
+        tupMult (a, b) (c, d) = (a * c, b * d)
 
     makeL :: ChessPosition -> (Int, Int) -> ChessPosition
     makeL (ChessPosition file rank) (df, dr) = ChessPosition file' rank'

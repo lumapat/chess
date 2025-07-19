@@ -19,11 +19,12 @@ import Chess.Board
   )
 import Chess.Move
   ( ChessMove (..),
-    ChessPosition,
+    ChessPosition (..),
     parseMove,
   )
 import Chess.Terminology
   ( ChessColor (..),
+    ChessFile (..),
     ChessPiece (..),
     ChessPieceType (..),
     ChessRank (..),
@@ -105,8 +106,10 @@ findMovers _ _ _ = []
 
 -- Debugging hook for the engine
 -- Override this with any kind of debug you want
+-- TODO: Create a debug stack tracer so we can print a breakdown
+-- of how a move was calculated
 debug :: Engine -> [String] -> String
-debug _ _ = "TODO"
+debug (Engine board) _ = ""
 
 newEngine :: Engine
 newEngine = Engine chessBoard
