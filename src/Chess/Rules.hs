@@ -82,7 +82,7 @@ findMovers board piece@(ChessPiece color ChessPawn) fromPos = validate pawnSquar
   where
     -- Pawns can only move forward, so we can check if they're in their
     -- starting rank to check for 2 places (or 1 place for any other time)
-    pawnSquares = take 2 $ squaresFrom board fromPos (dir color)
+    pawnSquares = take (numPawnSquares fromPos) $ squaresFrom board fromPos (dir color)
     dir ChessBlack = BoardNorth
     dir ChessWhite = BoardSouth
 
@@ -93,8 +93,16 @@ findMovers board piece@(ChessPiece color ChessPawn) fromPos = validate pawnSquar
       | otherwise = []
     validate [] = []
 
-    startingRank ChessBlack = R7
-    startingRank ChessWhite = R2
+    -- Only allow 2 square move if the pawn is on a starting rank
+    numPawnSquares (ChessPosition _ rank)
+      | startingRank color == rank = 2
+      | otherwise = 1
+
+    -- This is a bit confusing, but this isn't the actual starting rank of the pawn square
+    -- Since findMovers starts from the DESTINATION square, we can safely assume that the only
+    -- ranks that need to check for 2-square pawn moves are the middle ranks
+    startingRank ChessBlack = R5
+    startingRank ChessWhite = R4
 findMovers board piece@(ChessPiece color ChessKnight) fromPos = validate knightSquares
   where
     knightSquares = squaresFrom board fromPos BoardL
