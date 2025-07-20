@@ -23,6 +23,10 @@ where
 
 data ChessColor = ChessBlack | ChessWhite deriving (Eq)
 
+instance Show ChessColor where
+  show ChessBlack = "black"
+  show ChessWhite = "white"
+
 data ChessPieceType
   = ChessBishop
   | ChessKing

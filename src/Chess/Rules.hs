@@ -57,10 +57,32 @@ play e (turn, s) = parseMove color s >>= makeMove
 
     makeMove :: ChessMove -> Either String (Engine, Turn)
     makeMove (PieceMove piece pos _) = advance <$> movePiece e piece pos
+    -- TODO: Use disamb for pawn captures at least
+    makeMove (PieceCapture piece _ pos _) = advance <$> capturePiece e piece pos
     makeMove _ = Right (e, nextTurn turn)
 
     advance :: Engine -> (Engine, Turn)
     advance e = (e, nextTurn turn)
+
+capturePiece :: Engine -> ChessPiece -> ChessPosition -> Either String Engine
+capturePiece (Engine board) piece dest = validateCapture dest >>= flip capture attackers
+  where
+    validateCapture :: ChessPosition -> Either String ChessPosition
+    validateCapture pos = checkPieceOn $ squareAt board pos
+      where
+        checkPieceOn (ChessBoardSquare Nothing _) = Left ("Nothing to capture on " ++ show pos)
+        checkPieceOn (ChessBoardSquare (Just target) _)
+          | pieceColor target == pieceColor piece = Left ("Cannot capture your own piece (" ++ show (pieceColor piece) ++ ")")
+          | pieceType target == ChessKing = Left "Cannot capture an opponent king"
+          | otherwise = Right pos
+
+    attackers :: [ChessBoardSquare]
+    attackers = findAttackers board piece dest
+
+    capture :: ChessPosition -> [ChessBoardSquare] -> Either String Engine
+    capture pos [sq] = Right $ Engine $ fst (moveTo board (squarePos sq) pos) -- TODO: Record capture or something
+    capture pos [] = Left $ "No captures possible for " ++ show piece ++ " on " ++ show pos
+    capture pos _ = Left $ "Multiple " ++ show piece ++ " can capture " ++ show pos
 
 -- TODO: Need to check that the move is legal
 --       [x] Square isn't filled
@@ -74,11 +96,21 @@ movePiece (Engine board) piece dest = validateMove dest >>= flip makeMove movers
       | otherwise = Left ("Cannot move to a filled square at " ++ show pos)
     movers :: [ChessBoardSquare]
     movers = findMovers board piece dest
-    -- TODO: Detect if capture (error out) or not
     makeMove :: ChessPosition -> [ChessBoardSquare] -> Either String Engine
     makeMove pos [sq] = Right $ Engine $ fst (moveTo board (squarePos sq) pos)
     makeMove pos [] = Left $ "No moves possible for " ++ show piece ++ " " ++ show pos
     makeMove pos _ = Left $ "Multiple " ++ show piece ++ " can move to " ++ show pos
+
+-- Most pieces will move the same as capture, for the very one exception of pawns
+findAttackers :: ChessBoard -> ChessPiece -> ChessPosition -> [ChessBoardSquare]
+findAttackers board piece@(ChessPiece color ChessPawn) fromPos = mconcat $ takeFirstNonEmpty piece <$> pawnSquares
+  where
+    -- Pawns can only move forward, so we can check if they're in their
+    -- starting rank to check for 2 places (or 1 place for any other time)
+    pawnSquares = take 1 . squaresFrom board fromPos <$> dir color
+    dir ChessBlack = [BoardNE, BoardNW]
+    dir ChessWhite = [BoardSE, BoardSW]
+findAttackers board piece fromPos = findMovers board piece fromPos
 
 -- Finds pieces that can move to the destination by applying
 -- the opposite movement pattern to them. Usually, using the same

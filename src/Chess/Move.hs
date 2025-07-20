@@ -20,6 +20,11 @@ instance Show ChessPosition where
   show :: ChessPosition -> String
   show (ChessPosition file rank) = show file ++ show rank
 
+data DisambPosition = Disamb
+  { disambFile :: Maybe ChessFile,
+    disambRank :: Maybe ChessRank
+  }
+
 data ChessMoveRestriction = MoveUnrestricted | CheckRestricted | Checkmate
 
 -- TODO: Add non-pawn chess pieces
@@ -34,6 +39,7 @@ data ChessMove
       }
   | PieceCapture
       { capturingPiece :: ChessPiece,
+        captureSrc :: DisambPosition,
         dest :: ChessPosition,
         restriction :: ChessMoveRestriction
       }
@@ -56,8 +62,20 @@ parseChessMove color =
       <*> parseChessPosition
       <*> return MoveUnrestricted
   )
-    <|> (PieceCapture (ChessPiece color ChessPawn) <$> (parseCaptures *> parseChessPosition) <*> return MoveUnrestricted)
+    <|> ( PieceCapture
+            <$> ( ChessPiece color <$> parsePieceType
+                )
+            <*> parseDisamb
+            <*> (parseCaptures *> parseChessPosition)
+            <*> return MoveUnrestricted
+        )
     <* LT.endOfInput
+
+parseDisamb :: LT.Parser DisambPosition
+parseDisamb =
+  Disamb
+    <$> (Just <$> parseChessFile <|> return Nothing)
+    <*> (Just <$> parseChessRank <|> return Nothing)
 
 parsePieceType :: LT.Parser ChessPieceType
 parsePieceType =
