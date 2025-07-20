@@ -12,12 +12,18 @@
 - [x] Impl queens
 - [x] Impl kings
 - [x] Impl captures
-- [ ] (CLI) Implement stack tracer for debugging
-- [ ] Game state checks (normal, check, checkmate, draw)
+- [ ] Game state checks - check
+- [ ] Game state checks - checkmate
+- [ ] Game state checks - draw
+- [ ] Add quickcheck tests for board access
+- [ ] Add quickcheck tests for parser
+- [ ] Add quickcheck tests for rules (moves)
+- [ ] Add quickcheck tests for rules (captures)
 - [ ] Special move - en passant
 - [ ] Special move - castling
 - [ ] Special move - promotion
 - [ ] Disambiguate moves
-- [ ] Improve README (duhh)
+- [ ] (CLI) Implement stack tracer for debugging
 - [ ] (CLI) Add history nav buttons for ultimate experience
 - [ ] (CLI) Add reverse search for even bigger payoff
+- [ ] Improve README (duhh)
