@@ -87,7 +87,7 @@ toRankIndex rank = 8 - fromEnum rank -- Subtract from 8 since ranks are stored i
 toRawIndex :: ChessPosition -> Int
 toRawIndex (ChessPosition file rank) = toRankIndex rank * maxSquares + toFileIndex file
 
--- TODO Test this
+-- TODO: Test this
 squareAt :: ChessBoard -> ChessPosition -> ChessBoardSquare
 squareAt (ChessBoard v) pos = ChessBoardSquare sq pos
   where

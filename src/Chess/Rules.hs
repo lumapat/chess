@@ -15,6 +15,7 @@ import Chess.Board
     ChessBoardSquare (..),
     chessBoard,
     moveTo,
+    squareAt,
     squaresFrom,
   )
 import Chess.Move
@@ -62,16 +63,22 @@ play e (turn, s) = parseMove color s >>= makeMove
     advance e = (e, nextTurn turn)
 
 -- TODO: Need to check that the move is legal
+--       [x] Square isn't filled
+--       [ ] The next move won't put you in check
 movePiece :: Engine -> ChessPiece -> ChessPosition -> Either String Engine
-movePiece (Engine board) piece dest = makeMove movers
+movePiece (Engine board) piece dest = validateMove dest >>= flip makeMove movers
   where
+    validateMove :: ChessPosition -> Either String ChessPosition
+    validateMove pos
+      | isNothing (squarePiece (squareAt board pos)) = Right pos
+      | otherwise = Left ("Cannot move to a filled square at " ++ show pos)
     movers :: [ChessBoardSquare]
     movers = findMovers board piece dest
     -- TODO: Detect if capture (error out) or not
-    makeMove :: [ChessBoardSquare] -> Either String Engine
-    makeMove [sq] = Right $ Engine $ fst (moveTo board (squarePos sq) dest)
-    makeMove [] = Left $ "No moves possible for " ++ show piece ++ " " ++ show dest
-    makeMove _ = Left $ "Multiple " ++ show piece ++ " can move to " ++ show dest
+    makeMove :: ChessPosition -> [ChessBoardSquare] -> Either String Engine
+    makeMove pos [sq] = Right $ Engine $ fst (moveTo board (squarePos sq) pos)
+    makeMove pos [] = Left $ "No moves possible for " ++ show piece ++ " " ++ show pos
+    makeMove pos _ = Left $ "Multiple " ++ show piece ++ " can move to " ++ show pos
 
 -- Finds pieces that can move to the destination by applying
 -- the opposite movement pattern to them. Usually, using the same
