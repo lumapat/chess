@@ -15,6 +15,8 @@
 - [ ] Game state checks - check
 - [ ] Game state checks - checkmate
 - [ ] Game state checks - draw
+- [ ] Disambiguate moves
+- [x] Disambiguate captures
 - [ ] Add quickcheck tests for board access
 - [ ] Add quickcheck tests for parser
 - [ ] Add quickcheck tests for rules (moves)
@@ -22,7 +24,6 @@
 - [ ] Special move - en passant
 - [ ] Special move - castling
 - [ ] Special move - promotion
-- [ ] Disambiguate moves
 - [ ] (CLI) Implement stack tracer for debugging
 - [ ] (CLI) Add history nav buttons for ultimate experience
 - [ ] (CLI) Add reverse search for even bigger payoff

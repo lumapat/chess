@@ -21,6 +21,8 @@ import Chess.Board
 import Chess.Move
   ( ChessMove (..),
     ChessPosition (..),
+    DisambPosition,
+    disambMatch,
     parseMove,
   )
 import Chess.Terminology
@@ -55,17 +57,17 @@ play e (turn, s) = parseMove color s >>= makeMove
   where
     color = colorFromTurn turn
 
+    -- TODO: Use disamb in move?
     makeMove :: ChessMove -> Either String (Engine, Turn)
     makeMove (PieceMove piece pos _) = advance <$> movePiece e piece pos
-    -- TODO: Use disamb for pawn captures at least
-    makeMove (PieceCapture piece _ pos _) = advance <$> capturePiece e piece pos
+    makeMove (PieceCapture piece disamb pos _) = advance <$> capturePiece e piece pos disamb
     makeMove _ = Right (e, nextTurn turn)
 
     advance :: Engine -> (Engine, Turn)
     advance e = (e, nextTurn turn)
 
-capturePiece :: Engine -> ChessPiece -> ChessPosition -> Either String Engine
-capturePiece (Engine board) piece dest = validateCapture dest >>= flip capture attackers
+capturePiece :: Engine -> ChessPiece -> ChessPosition -> DisambPosition -> Either String Engine
+capturePiece (Engine board) piece dest disamb = validateCapture dest >>= flip capture attackers
   where
     validateCapture :: ChessPosition -> Either String ChessPosition
     validateCapture pos = checkPieceOn $ squareAt board pos
@@ -82,7 +84,10 @@ capturePiece (Engine board) piece dest = validateCapture dest >>= flip capture a
     capture :: ChessPosition -> [ChessBoardSquare] -> Either String Engine
     capture pos [sq] = Right $ Engine $ fst (moveTo board (squarePos sq) pos) -- TODO: Record capture or something
     capture pos [] = Left $ "No captures possible for " ++ show piece ++ " on " ++ show pos
-    capture pos _ = Left $ "Multiple " ++ show piece ++ " can capture " ++ show pos
+    capture pos sqs = capture' $ filter (disambMatch disamb . squarePos) sqs
+      where
+        capture' (s1 : s2 : sqs) = Left $ "Multiple " ++ show piece ++ " can capture " ++ show pos
+        capture' sqs' = capture pos sqs'
 
 -- TODO: Need to check that the move is legal
 --       [x] Square isn't filled

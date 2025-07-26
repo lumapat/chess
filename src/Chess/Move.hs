@@ -1,6 +1,13 @@
 {-# LANGUAGE InstanceSigs #-}
 
-module Chess.Move (ChessMove (..), ChessPosition (..), parseMove) where
+module Chess.Move
+  ( ChessMove (..),
+    ChessPosition (..),
+    DisambPosition,
+    disambMatch,
+    parseMove,
+  )
+where
 
 import Chess.Terminology
   ( ChessColor,
@@ -24,6 +31,12 @@ data DisambPosition = Disamb
   { disambFile :: Maybe ChessFile,
     disambRank :: Maybe ChessRank
   }
+
+disambMatch :: DisambPosition -> ChessPosition -> Bool
+disambMatch (Disamb Nothing Nothing) _ = False
+disambMatch (Disamb (Just file) (Just rank)) (ChessPosition f r) = file == f && rank == r
+disambMatch (Disamb (Just file) Nothing) (ChessPosition f _) = file == f
+disambMatch (Disamb Nothing (Just rank)) (ChessPosition _ r) = rank == r
 
 data ChessMoveRestriction = MoveUnrestricted | CheckRestricted | Checkmate
 
