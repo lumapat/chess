@@ -28,6 +28,18 @@ turnPrompt :: Turn -> String
 turnPrompt WhiteTurn = "(White to play) "
 turnPrompt BlackTurn = "(Black to play) "
 
+-- TODO: Make CLI micro-framework to add commands with args + TODO
+helpMsg :: String
+helpMsg =
+  unlines
+    [ "Commands you can run: ",
+      "  debug: Runs the currently set debug statement",
+      "  q(uit): Quits the current program",
+      "  help: Prints this message",
+      "  show: Shows the current board",
+      "  [input]: Plays the chess move specified in algebraic notation"
+    ]
+
 prompt :: (CLIProcessor a, CLIDebug a) => CLIStep a -> IO (CLIStep a)
 prompt (chessProg, turn, _) = do
   cmd <- putStr (turnPrompt turn) *> hFlush stdout *> getLine
@@ -41,7 +53,7 @@ prompt (chessProg, turn, _) = do
     process' "q" args = process' "quit" args
     process' "quit" _ = putStrLn "Quitting..." $> (chessProg, turn, EndState)
     process' "h" args = process' "help" args
-    process' "help" _ = putStrLn "TODO" $> defaultNextState
+    process' "help" _ = putStrLn helpMsg $> defaultNextState
     process' "show" _ = putStrLn (showBoard chessProg) $> defaultNextState
     process' input _ = processPlay (chessProg, turn, ContinueState) input
 
