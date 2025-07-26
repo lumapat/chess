@@ -8,16 +8,6 @@ module Chess.Terminology
     PieceGenerator,
     -- Colors
     ChessColor (..),
-    black,
-    coloring,
-    white,
-    -- Units
-    bishop,
-    king,
-    knight,
-    pawn,
-    queen,
-    rook,
   )
 where
 
