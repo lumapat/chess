@@ -215,7 +215,7 @@ checkBoard :: Engine -> Maybe ChessGameState -> Either String Engine
 checkBoard e Nothing = Right e >>= passChecks
   where
     -- Check if any of the two colors are in check
-    passChecks = passResult "is in check" $ filter (inCheck e) [ChessBlack, ChessWhite]
+    passChecks = passResult " is in check" $ filter (inCheck e) [ChessBlack, ChessWhite]
 
     passResult :: String -> [ChessColor] -> Engine -> Either String Engine
     passResult _ [] e = Right e

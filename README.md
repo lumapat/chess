@@ -12,7 +12,7 @@
 - [x] Impl queens
 - [x] Impl kings
 - [x] Impl captures
-- [-] Game state checks - check
+- [x] Game state checks - check
 - [ ] Game state checks - checkmate
 - [ ] Game state checks - draw
 - [ ] Disambiguate moves
