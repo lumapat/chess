@@ -12,7 +12,7 @@
 - [x] Impl queens
 - [x] Impl kings
 - [x] Impl captures
-- [ ] Game state checks - check
+- [-] Game state checks - check
 - [ ] Game state checks - checkmate
 - [ ] Game state checks - draw
 - [ ] Disambiguate moves
@@ -24,6 +24,7 @@
 - [ ] Special move - en passant
 - [ ] Special move - castling
 - [ ] Special move - promotion
+- [ ] Edge case rule - can't castle while in check
 - [ ] (CLI) Implement stack tracer for debugging
 - [ ] (CLI) Add history nav buttons for ultimate experience
 - [ ] (CLI) Add reverse search for even bigger payoff

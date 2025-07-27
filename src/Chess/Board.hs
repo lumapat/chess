@@ -3,6 +3,7 @@ module Chess.Board
     ChessBoard,
     ChessBoardSquare (..),
     chessBoard,
+    findPieces,
     moveTo,
     squareAt,
     squaresFrom,
@@ -21,6 +22,7 @@ import Control.Monad (msum)
 import Data.List (intercalate)
 import Data.List.Extra (chunksOf)
 import qualified Data.Vector as V
+import GHC.Enum (boundedEnumFrom)
 
 -- DO NOT EXPORT
 newtype ChessBoardRawSquare = ChessBoardRawSquare (Maybe ChessPiece)
@@ -93,6 +95,10 @@ squareAt (ChessBoard v) pos = ChessBoardSquare sq pos
   where
     ChessBoardRawSquare sq = (V.!) v (toRawIndex pos)
 
+-- TODO: Test this
+findPieces :: ChessBoard -> ChessPiece -> [ChessBoardSquare]
+findPieces board piece = filter ((== Just piece) . squarePiece) $ squareAt board <$> boundedEnumFrom (minBound :: ChessPosition)
+
 -- Directions of a square relative to a ChessPosition
 -- North is towards black's side, and south is towards white's side
 data BoardDirection
@@ -119,8 +125,7 @@ squaresFrom board pos@(ChessPosition file rank) = fmap (squareAt board) . square
     squaresFrom' BoardNW = zipWith ChessPosition (untilMin file) (untilMax rank)
     squaresFrom' BoardSE = zipWith ChessPosition (untilMax file) (untilMin rank)
     squaresFrom' BoardSW = zipWith ChessPosition (untilMin file) (untilMin rank)
-    -- squaresFrom' BoardL = filter (isValidL pos) $ makeL pos <$> lOffsets
-    squaresFrom' BoardL = makeL pos <$> lOffsets
+    squaresFrom' BoardL = filter (isValidL pos) $ makeL pos <$> lOffsets
 
     -- L offsets
     lOffsets :: [(Int, Int)]

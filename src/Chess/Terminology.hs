@@ -2,16 +2,22 @@
 
 module Chess.Terminology
   ( ChessFile (..),
+    ChessGameState (..),
     ChessPiece (..),
     ChessPieceType (..),
     ChessRank (..),
     PieceGenerator,
     -- Colors
     ChessColor (..),
+    enemyColor,
   )
 where
 
 data ChessColor = ChessBlack | ChessWhite deriving (Eq)
+
+enemyColor :: ChessColor -> ChessColor
+enemyColor ChessBlack = ChessWhite
+enemyColor ChessWhite = ChessBlack
 
 instance Show ChessColor where
   show ChessBlack = "black"
@@ -188,3 +194,8 @@ queen ChessBlack = ChessPiece ChessBlack ChessQueen
 rook :: PieceGenerator
 rook ChessWhite = ChessPiece ChessWhite ChessRook
 rook ChessBlack = ChessPiece ChessBlack ChessRook
+
+data ChessGameState
+  = ChessCheck ChessColor
+  | ChessCheckmate ChessColor
+  deriving (Show)

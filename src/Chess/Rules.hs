@@ -1,4 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TupleSections #-}
 
 module Chess.Rules
   ( Turn (..),
@@ -14,6 +15,7 @@ import Chess.Board
     ChessBoard,
     ChessBoardSquare (..),
     chessBoard,
+    findPieces,
     moveTo,
     squareAt,
     squaresFrom,
@@ -24,14 +26,16 @@ import Chess.Move
     DisambPosition,
     disambMatch,
     parseMove,
+    stateFromRestriction,
   )
 import Chess.Terminology
   ( ChessColor (..),
     ChessFile (..),
+    ChessGameState (..),
     ChessPiece (..),
     ChessPieceType (..),
     ChessRank (..),
-    coloring,
+    enemyColor,
   )
 import Data.Functor (($>))
 import Data.Maybe (isJust, isNothing)
@@ -53,11 +57,18 @@ colorFromTurn BlackTurn = ChessBlack
 colorFromTurn WhiteTurn = ChessWhite
 
 play :: Engine -> (Turn, String) -> Either String (Engine, Turn)
-play e (turn, s) = parseMove color s >>= makeMove
+play e (turn, s) = parseMove color s >>= makeMoveAndCheck
   where
     color = colorFromTurn turn
 
     -- TODO: Use disamb in move?
+    makeMoveAndCheck :: ChessMove -> Either String (Engine, Turn)
+    makeMoveAndCheck move = makeMove move >>= checkBoardState intendedState
+      where
+        intendedState = stateFromRestriction move
+        checkBoardState :: Maybe ChessGameState -> (Engine, Turn) -> Either String (Engine, Turn)
+        checkBoardState state (e, turn) = (,turn) <$> checkBoard e state
+
     makeMove :: ChessMove -> Either String (Engine, Turn)
     makeMove (PieceMove piece pos _) = advance <$> movePiece e piece pos
     makeMove (PieceCapture piece disamb pos _) = advance <$> capturePiece e piece pos disamb
@@ -200,12 +211,48 @@ takeFirstNonEmpty piece (sq : sqs)
   | otherwise = []
 takeFirstNonEmpty _ [] = []
 
+checkBoard :: Engine -> Maybe ChessGameState -> Either String Engine
+checkBoard e Nothing = Right e >>= passChecks
+  where
+    -- Check if any of the two colors are in check
+    passChecks = passResult "is in check" $ filter (inCheck e) [ChessBlack, ChessWhite]
+
+    passResult :: String -> [ChessColor] -> Engine -> Either String Engine
+    passResult _ [] e = Right e
+    passResult suffix (c : cs) _ = Left (show c ++ suffix)
+checkBoard e (Just (ChessCheck color))
+  | inCheck e color = Right e
+  | otherwise = Left (show color ++ " is not in check")
+checkBoard e@(Engine board) _ = Right e
+
+-- TODO: Handle really invalid board states
+inCheck :: Engine -> ChessColor -> Bool
+inCheck (Engine board) color =
+  not
+    ( null
+        ( mconcat $
+            findAttackers board
+              <$> units
+              <*> kingPos
+        )
+    )
+  where
+    units =
+      ChessPiece (enemyColor color)
+        <$> [ ChessPawn,
+              ChessQueen,
+              ChessBishop,
+              ChessRook,
+              ChessKnight
+            ]
+    kingPos = squarePos <$> findPieces board (ChessPiece color ChessKing)
+
 -- Debugging hook for the engine
 -- Override this with any kind of debug you want
 -- TODO: Create a debug stack tracer so we can print a breakdown
 -- of how a move was calculated
 debug :: Engine -> [String] -> String
-debug (Engine board) _ = ""
+debug e _ = ""
 
 newEngine :: Engine
 newEngine = Engine chessBoard
