@@ -1,5 +1,42 @@
 # chess
 
+Play chess with algebraic notation in a CLI! Here's some commands to run:
+
+```
+  debug: Runs the currently set debug statement
+  q(uit): Quits the current program
+  help: Prints this message
+  show: Shows the current board
+  [input]: Plays the chess move specified in algebraic notation
+```
+
+### Example output
+
+```
+(White to play) show
+♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+_ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _
+_ _ _ _ _ _ _ _
+♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+(White to play) d4
+Played: d4
+(Black to play) d5
+Played: d5
+(White to play) show
+♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+♟ ♟ ♟ _ ♟ ♟ ♟ ♟
+_ _ _ _ _ _ _ _
+_ _ _ ♟ _ _ _ _
+_ _ _ ♙ _ _ _ _
+_ _ _ _ _ _ _ _
+♙ ♙ ♙ _ ♙ ♙ ♙ ♙
+♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+```
+
 ### TODO LIST
 
 - [x] Create engine
@@ -28,4 +65,4 @@
 - [ ] (CLI) Implement stack tracer for debugging
 - [ ] (CLI) Add history nav buttons for ultimate experience
 - [ ] (CLI) Add reverse search for even bigger payoff
-- [ ] Improve README (duhh)
+- [x] Improve README (duhh)
